@@ -1,0 +1,72 @@
+name: Build and Release FFmpeg
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build FFmpeg (Windows)
+        run: bash build-ffmpeg.sh
+
+      - name: Create zip archive
+        run: |
+          cd $HOME/mkv/ffmpeg-win-static
+          zip -r ffmpeg-win-static.zip bin/ lib/ include/ LICENSE*
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: $HOME/mkv/ffmpeg-win-static/ffmpeg-win-static.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build FFmpeg (Linux)
+        run: bash build-ffmpeg-linux.sh
+
+      - name: Create zip archive
+        run: |
+          cd $HOME/ffmpeg-linux
+          zip -r ffmpeg-linux-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || true
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: $HOME/ffmpeg-linux/ffmpeg-linux-static.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-android:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build FFmpeg (Android)
+        run: bash build-ffmpeg-android.sh
+
+      - name: Create zip archive
+        run: |
+          cd $HOME/ffmpeg-android
+          zip -r ffmpeg-android.zip bin/ lib/ include/ 2>/dev/null || true
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: $HOME/ffmpeg-android/ffmpeg-android.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
