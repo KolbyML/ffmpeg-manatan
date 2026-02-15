@@ -4,6 +4,9 @@ on:
   release:
     types: [created]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,17 +18,21 @@ jobs:
       - name: Build FFmpeg (Windows)
         run: bash build-ffmpeg.sh
 
+      - name: Find and list output
+        run: |
+          echo "Contents of mkv dir:"
+          ls -la $HOME/mkv/ffmpeg-win-static/ 2>/dev/null || echo "Directory not found"
+
       - name: Create zip archive
         run: |
           cd $HOME/mkv/ffmpeg-win-static
-          zip -r ffmpeg-win-static.zip bin/ lib/ include/ LICENSE*
+          zip -r ffmpeg-win-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ffmpeg-win-static.zip . 2>/dev/null || true
+          ls -la
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         with:
           files: $HOME/mkv/ffmpeg-win-static/ffmpeg-win-static.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-linux:
     runs-on: ubuntu-latest
@@ -37,17 +44,21 @@ jobs:
       - name: Build FFmpeg (Linux)
         run: bash build-ffmpeg-linux.sh
 
+      - name: Find and list output
+        run: |
+          echo "Contents of ffmpeg-linux dir:"
+          ls -la $HOME/ffmpeg-linux/ 2>/dev/null || echo "Directory not found"
+
       - name: Create zip archive
         run: |
           cd $HOME/ffmpeg-linux
-          zip -r ffmpeg-linux-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || true
+          zip -r ffmpeg-linux-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ffmpeg-linux-static.zip . 2>/dev/null || true
+          ls -la
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         with:
           files: $HOME/ffmpeg-linux/ffmpeg-linux-static.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-android:
     runs-on: ubuntu-latest
@@ -59,14 +70,18 @@ jobs:
       - name: Build FFmpeg (Android)
         run: bash build-ffmpeg-android.sh
 
+      - name: Find and list output
+        run: |
+          echo "Contents of ffmpeg-android dir:"
+          ls -la $HOME/ffmpeg-android/ 2>/dev/null || echo "Directory not found"
+
       - name: Create zip archive
         run: |
           cd $HOME/ffmpeg-android
-          zip -r ffmpeg-android.zip bin/ lib/ include/ 2>/dev/null || true
+          zip -r ffmpeg-android.zip bin/ lib/ include/ 2>/dev/null || zip -r ffmpeg-android.zip . 2>/dev/null || true
+          ls -la
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         with:
           files: $HOME/ffmpeg-android/ffmpeg-android.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
