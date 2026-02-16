@@ -27,16 +27,14 @@ jobs:
 
       - name: Create zip archive
         run: |
+          mkdir -p output
           cd /home/runner/mkv/ffmpeg-win-static
-          zip -r ffmpeg-win-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ffmpeg-win-static.zip . 2>/dev/null || true
-          ls -la
+          zip -r ../output/ffmpeg-win-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ../output/ffmpeg-win-static.zip . 2>/dev/null || true
 
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: /home/runner/mkv/ffmpeg-win-static/ffmpeg-win-static.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: output/ffmpeg-win-static.zip
 
   build-linux:
     runs-on: ubuntu-latest
@@ -57,16 +55,14 @@ jobs:
 
       - name: Create zip archive
         run: |
+          mkdir -p output
           cd /home/runner/ffmpeg-linux
-          zip -r ffmpeg-linux-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ffmpeg-linux-static.zip . 2>/dev/null || true
-          ls -la
+          zip -r ../output/ffmpeg-linux-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ../output/ffmpeg-linux-static.zip . 2>/dev/null || true
 
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: /home/runner/ffmpeg-linux/ffmpeg-linux-static.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: output/ffmpeg-linux-static.zip
 
   build-android:
     runs-on: ubuntu-latest
@@ -87,13 +83,16 @@ jobs:
 
       - name: Create zip archive
         run: |
+          mkdir -p output
           cd /home/runner/ffmpeg-android
-          zip -r ffmpeg-android.zip arm64-v8a armeabi-v7a
-          ls -la
+          zip -r ../output/ffmpeg-android.zip arm64-v8a armeabi-v7a
+
+      - name: Verify zip file exists
+        run: |
+          echo "Verifying zip file..."
+          ls -la output/ffmpeg-android.zip || { echo "ERROR: Zip file not found!"; exit 1; }
 
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: /home/runner/ffmpeg-android/ffmpeg-android.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: output/ffmpeg-android.zip
