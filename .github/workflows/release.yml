@@ -8,91 +8,75 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-windows:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Build FFmpeg (Windows)
         run: bash build-ffmpeg.sh
-
-      - name: Find and list output
-        run: |
-          echo "Contents of mkv dir:"
-          ls -la /home/runner/mkv/ffmpeg-win-static/ 2>/dev/null || echo "Directory not found"
-
       - name: Create zip archive
         run: |
-          mkdir -p output
+          mkdir -p dist
           cd /home/runner/mkv/ffmpeg-win-static
-          zip -r ../output/ffmpeg-win-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ../output/ffmpeg-win-static.zip . 2>/dev/null || true
-
-      - name: Upload Release Asset
-        uses: softprops/action-gh-release@v2
+          zip -r ../../dist/ffmpeg-win-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ../../dist/ffmpeg-win-static.zip .
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: output/ffmpeg-win-static.zip
+          name: ffmpeg-win
+          path: dist/ffmpeg-win-static.zip
 
   build-linux:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Build FFmpeg (Linux)
         run: bash build-ffmpeg-linux.sh
-
-      - name: Find and list output
-        run: |
-          echo "Contents of ffmpeg-linux dir:"
-          ls -la /home/runner/ffmpeg-linux/ 2>/dev/null || echo "Directory not found"
-
       - name: Create zip archive
         run: |
-          mkdir -p output
+          mkdir -p dist
           cd /home/runner/ffmpeg-linux
-          zip -r ../output/ffmpeg-linux-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ../output/ffmpeg-linux-static.zip . 2>/dev/null || true
-
-      - name: Upload Release Asset
-        uses: softprops/action-gh-release@v2
+          zip -r ../../dist/ffmpeg-linux-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ../../dist/ffmpeg-linux-static.zip .
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: output/ffmpeg-linux-static.zip
+          name: ffmpeg-linux
+          path: dist/ffmpeg-linux-static.zip
 
   build-android:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Build FFmpeg (Android)
         run: bash build-ffmpeg-android.sh
-
-      - name: Find and list output
-        run: |
-          echo "Contents of ffmpeg-android dir:"
-          ls -la /home/runner/ffmpeg-android/ 2>/dev/null || echo "Directory not found"
-
       - name: Create zip archive
         run: |
-          mkdir -p output
+          mkdir -p dist
           cd /home/runner/ffmpeg-android
-          zip -r ../output/ffmpeg-android.zip arm64-v8a armeabi-v7a
+          zip -r ../../dist/ffmpeg-android.zip arm64-v8a armeabi-v7a 2>/dev/null || zip -r ../../dist/ffmpeg-android.zip .
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-android
+          path: dist/ffmpeg-android.zip
 
-      - name: Verify zip file exists
+  release:
+    needs: [build-windows, build-linux, build-android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Debug - List Files
         run: |
-          echo "Verifying zip file..."
-          ls -la output/ffmpeg-android.zip || { echo "ERROR: Zip file not found!"; exit 1; }
+          echo "Files to upload:"
+          ls -la dist/
 
-      - name: Upload Release Asset
+      - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
-          files: output/ffmpeg-android.zip
+          files: dist/*.zip
