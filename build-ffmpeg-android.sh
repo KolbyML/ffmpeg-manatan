@@ -6,7 +6,7 @@ set -e
 # ============================================
 
 # === Android SDK/NDK Environment ===
-export ANDROID_HOME=$HOME/android-sdk
+export ANDROID_HOME=/home/runner/android-sdk
 export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125
 export ANDROID_NDK=$ANDROID_NDK_HOME
 export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
@@ -16,8 +16,8 @@ export AR_aarch64_linux_android=$TOOLCHAIN/llvm-ar
 
 # === Build Configuration ===
 API_LEVEL=24  # Android 7.0 minimum
-BUILD_DIR="$HOME/ffmpeg-android-build"
-OUTPUT_DIR="$HOME/ffmpeg-android"
+BUILD_DIR="/home/runner/ffmpeg-android-build"
+OUTPUT_DIR="/home/runner/ffmpeg-android"
 ARCHS="arm64-v8a armeabi-v7a"
 
 # === Verify NDK ===

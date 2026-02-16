@@ -7,8 +7,8 @@ set -e
 # ============================================
 
 # === Build Configuration ===
-BUILD_DIR="$HOME/ffmpeg-linux-build"
-OUTPUT_DIR="$HOME/ffmpeg-linux"
+BUILD_DIR="/home/runner/ffmpeg-linux-build"
+OUTPUT_DIR="/home/runner/ffmpeg-linux"
 
 mkdir -p "$BUILD_DIR" "$OUTPUT_DIR"
 

@@ -5,8 +5,8 @@ set -e
 # FFmpeg 7.1 Universal Build 
 # ============================================
 
-export INSTALL_DIR="$HOME/mkv/ffmpeg-win-static"
-export BUILD_DIR="$HOME/mkv/ffmpeg-build-win"
+export INSTALL_DIR="/home/runner/mkv/ffmpeg-win-static"
+export BUILD_DIR="/home/runner/mkv/ffmpeg-build-win"
 export TOOLCHAIN="x86_64-w64-mingw32"
 
 export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig"
