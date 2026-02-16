@@ -6,12 +6,26 @@ set -e
 # Hardware Acceleration for Intel/AMD GPUs
 # ============================================
 
-# === Build Configuration ===
-BUILD_DIR="/home/runner/ffmpeg-linux-build"
-OUTPUT_DIR="/home/runner/ffmpeg-linux"
+# === Output Configuration ===
+if [ -n "$GITHUB_WORKSPACE" ]; then
+    WORKSPACE="$GITHUB_WORKSPACE"
+else
+    WORKSPACE="$(pwd)"
+fi
 
-mkdir -p "$BUILD_DIR" "$OUTPUT_DIR"
+DIST_DIR="$WORKSPACE/dist"
+OUTPUT_DIR="$WORKSPACE/ffmpeg-linux-output"
+BUILD_DIR="$WORKSPACE/ffmpeg-linux-build"
 
+mkdir -p "$DIST_DIR" "$OUTPUT_DIR" "$BUILD_DIR"
+
+echo "================================================"
+echo "FFmpeg 7.1 Linux Build with VAAPI"
+echo "================================================"
+echo "  WORKSPACE:   $WORKSPACE"
+echo "  BUILD_DIR:   $BUILD_DIR"
+echo "  OUTPUT_DIR:  $OUTPUT_DIR"
+echo "  DIST_DIR:    $DIST_DIR"
 echo "================================================"
 echo "FFmpeg 7.1 Linux Build with VAAPI"
 echo "================================================"
@@ -167,6 +181,26 @@ else
     echo "⚠️ VAAPI device not found at /dev/dri/renderD128"
     echo "   This is normal on WSL without GPU passthrough"
     echo "   VAAPI will work on real Linux with Intel/AMD GPU"
+fi
+
+# ----------------------------------------
+# 5. Create ZIP Package
+# ----------------------------------------
+echo ""
+echo "================================================"
+echo "Creating distribution package..."
+echo "================================================"
+
+cd "$OUTPUT_DIR"
+zip -r "$DIST_DIR/ffmpeg-linux-static.zip" bin/ lib/ include/ 2>/dev/null || \
+zip -r "$DIST_DIR/ffmpeg-linux-static.zip" .
+
+if [ -f "$DIST_DIR/ffmpeg-linux-static.zip" ]; then
+    echo "✅ Package created: $DIST_DIR/ffmpeg-linux-static.zip"
+    ls -lh "$DIST_DIR/ffmpeg-linux-static.zip"
+else
+    echo "❌ Failed to create package!"
+    exit 1
 fi
 
 # ----------------------------------------

@@ -5,6 +5,19 @@ set -e
 # FFmpeg 7.1 for Android - Using Existing NDK
 # ============================================
 
+# === Output Configuration ===
+if [ -n "$GITHUB_WORKSPACE" ]; then
+    WORKSPACE="$GITHUB_WORKSPACE"
+else
+    WORKSPACE="$(pwd)"
+fi
+
+DIST_DIR="$WORKSPACE/dist"
+OUTPUT_DIR="$WORKSPACE/ffmpeg-android-output"
+BUILD_DIR="/tmp/ffmpeg-android-build"
+
+mkdir -p "$DIST_DIR" "$OUTPUT_DIR" "$BUILD_DIR"
+
 # === Android SDK/NDK Environment ===
 export ANDROID_HOME=/home/runner/android-sdk
 export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125
@@ -233,7 +246,27 @@ for ARCH in $ARCHS; do
 done
 
 # ----------------------------------------
-# 5. Summary
+# 5. Create ZIP Package
+# ----------------------------------------
+echo ""
+echo "================================================"
+echo "Creating distribution package..."
+echo "================================================"
+
+cd "$OUTPUT_DIR"
+zip -r "$DIST_DIR/ffmpeg-android.zip" arm64-v8a armeabi-v7a 2>/dev/null || \
+zip -r "$DIST_DIR/ffmpeg-android.zip" .
+
+if [ -f "$DIST_DIR/ffmpeg-android.zip" ]; then
+    echo "✅ Package created: $DIST_DIR/ffmpeg-android.zip"
+    ls -lh "$DIST_DIR/ffmpeg-android.zip"
+else
+    echo "❌ Failed to create package!"
+    exit 1
+fi
+
+# ----------------------------------------
+# 6. Summary
 # ----------------------------------------
 echo ""
 echo "================================================"

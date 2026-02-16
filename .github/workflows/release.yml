@@ -12,52 +12,61 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Build FFmpeg (Windows)
         run: bash build-ffmpeg.sh
-      - name: Create zip archive
+        
+      - name: Verify Output
         run: |
-          mkdir -p dist
-          cd /home/runner/mkv/ffmpeg-win-static
-          zip -r ../../dist/ffmpeg-win-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ../../dist/ffmpeg-win-static.zip .
+          echo "📦 Build artifacts:"
+          ls -la dist/
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ffmpeg-win
           path: dist/ffmpeg-win-static.zip
+          if-no-files-found: error
 
   build-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Build FFmpeg (Linux)
         run: bash build-ffmpeg-linux.sh
-      - name: Create zip archive
+        
+      - name: Verify Output
         run: |
-          mkdir -p dist
-          cd /home/runner/ffmpeg-linux
-          zip -r ../../dist/ffmpeg-linux-static.zip bin/ lib/ include/ LICENSE* 2>/dev/null || zip -r ../../dist/ffmpeg-linux-static.zip .
+          echo "📦 Build artifacts:"
+          ls -la dist/
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ffmpeg-linux
           path: dist/ffmpeg-linux-static.zip
+          if-no-files-found: error
 
   build-android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Build FFmpeg (Android)
         run: bash build-ffmpeg-android.sh
-      - name: Create zip archive
+        
+      - name: Verify Output
         run: |
-          mkdir -p dist
-          cd /home/runner/ffmpeg-android
-          zip -r ../../dist/ffmpeg-android.zip arm64-v8a armeabi-v7a 2>/dev/null || zip -r ../../dist/ffmpeg-android.zip .
+          echo "📦 Build artifacts:"
+          ls -la dist/
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ffmpeg-android
           path: dist/ffmpeg-android.zip
+          if-no-files-found: error
 
   release:
     needs: [build-windows, build-linux, build-android]
@@ -71,10 +80,10 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - name: Debug - List Files
+      - name: List Release Files
         run: |
-          echo "Files to upload:"
-          ls -la dist/
+          echo "📦 Files to release:"
+          ls -lah dist/
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2

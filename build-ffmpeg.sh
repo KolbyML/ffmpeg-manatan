@@ -5,14 +5,25 @@ set -e
 # FFmpeg 7.1 Universal Build 
 # ============================================
 
-export INSTALL_DIR="/home/runner/mkv/ffmpeg-win-static"
-export BUILD_DIR="/home/runner/mkv/ffmpeg-build-win"
+# === Output Configuration ===
+if [ -n "$GITHUB_WORKSPACE" ]; then
+    WORKSPACE="$GITHUB_WORKSPACE"
+else
+    WORKSPACE="$(pwd)"
+fi
+
+DIST_DIR="$WORKSPACE/dist"
+OUTPUT_DIR="$WORKSPACE/ffmpeg-win-output"
+BUILD_DIR="/tmp/ffmpeg-win-build"
+
+mkdir -p "$DIST_DIR" "$OUTPUT_DIR" "$BUILD_DIR"
+
+export INSTALL_DIR="$OUTPUT_DIR"
+export BUILD_DIR="$BUILD_DIR"
 export TOOLCHAIN="x86_64-w64-mingw32"
 
 export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig"
 export PKG_CONFIG_LIBDIR="$INSTALL_DIR/lib/pkgconfig"
-
-mkdir -p "$INSTALL_DIR" "$BUILD_DIR"
 
 export CC="${TOOLCHAIN}-gcc"
 export CXX="${TOOLCHAIN}-g++"
@@ -21,6 +32,11 @@ export RANLIB="${TOOLCHAIN}-ranlib"
 
 echo "================================================"
 echo "FFmpeg 7.1 Universal Build"
+echo "================================================"
+echo "  WORKSPACE:   $WORKSPACE"
+echo "  BUILD_DIR:   $BUILD_DIR"
+echo "  OUTPUT_DIR:  $OUTPUT_DIR"
+echo "  DIST_DIR:    $DIST_DIR"
 echo "================================================"
 
 # ----------------------------------------
@@ -186,4 +202,22 @@ make install
 if [ -f "$INSTALL_DIR/bin/ffmpeg.exe" ]; then
     ${TOOLCHAIN}-strip "$INSTALL_DIR/bin/ffmpeg.exe"
     echo "   Stripped binary for smaller size"
+fi
+
+# ----------------------------------------
+# 8. Create ZIP Package
+# ----------------------------------------
+echo ""
+echo "[8/8] Creating distribution package..."
+
+cd "$OUTPUT_DIR"
+zip -r "$DIST_DIR/ffmpeg-win-static.zip" bin/ lib/ include/ 2>/dev/null || \
+zip -r "$DIST_DIR/ffmpeg-win-static.zip" .
+
+if [ -f "$DIST_DIR/ffmpeg-win-static.zip" ]; then
+    echo "✅ Package created: $DIST_DIR/ffmpeg-win-static.zip"
+    ls -lh "$DIST_DIR/ffmpeg-win-static.zip"
+else
+    echo "❌ Failed to create package!"
+    exit 1
 fi
