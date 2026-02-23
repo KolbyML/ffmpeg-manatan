@@ -218,7 +218,7 @@ build_ffmpeg() {
         --enable-demuxer=matroska,hls \
         --enable-muxer=hls,mpegts \
         \
-        --enable-protocol=file,pipe \
+        --enable-protocol=file,pipe,http,https,tcp,tls \
         \
         --enable-filter=scale,format \
         \

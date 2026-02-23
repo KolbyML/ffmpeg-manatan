@@ -186,7 +186,7 @@ sed -i 's/enabled ffnvcodec && check_pkg_config ffnvcodec/enabled ffnvcodec/g' c
     --enable-parser=hevc,av1,h264,aac,ac3,opus \
     --enable-demuxer=matroska \
     --enable-muxer=hls,mpegts \
-    --enable-protocol=file,pipe \
+    --enable-protocol=file,pipe,http,https,tcp,tls \
     --enable-filter=scale,format \
     --enable-bsf=h264_mp4toannexb,aac_adtstoasc
 
