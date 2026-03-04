@@ -68,8 +68,28 @@ jobs:
           path: dist/ffmpeg-android.zip
           if-no-files-found: error
 
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build FFmpeg (macOS)
+        run: bash build-ffmpeg-macos.sh
+        
+      - name: Verify Output
+        run: |
+          echo "📦 Build artifacts:"
+          ls -la dist/
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-macos
+          path: dist/ffmpeg-macos.zip
+          if-no-files-found: error
+
   release:
-    needs: [build-windows, build-linux, build-android]
+    needs: [build-windows, build-linux, build-android, build-macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write
