@@ -103,7 +103,7 @@ cd "$BUILD_DIR"
 if [ ! -f "$INSTALL_DIR/include/ffnvcodec/nvEncodeAPI.h" ]; then
     echo "[5/6] Installing NVIDIA headers..."
     rm -rf nv-codec-headers
-    git clone --depth 1 https://git.videolan.org/git/ffmpeg/nv-codec-headers.git
+    git clone --depth 1 https://github.com/FFmpeg/nv-codec-headers.git
     cd nv-codec-headers
     make PREFIX="$INSTALL_DIR" install
     cd ..
