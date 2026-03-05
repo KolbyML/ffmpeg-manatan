@@ -180,12 +180,12 @@ sed -i 's/enabled ffnvcodec && check_pkg_config ffnvcodec/enabled ffnvcodec/g' c
     --enable-libx264 \
     --enable-amf \
     --enable-d3d11va \
-    --enable-decoder=hevc,av1,aac,ac3,eac3,opus \
+    --enable-decoder=hevc,av1,h264,aac,ac3,eac3,opus,ass,ssa,subrip,webvtt,mov_text \
     --enable-hwaccel=h264_d3d11va,hevc_d3d11va,av1_d3d11va \
-    --enable-encoder=libx264,h264_nvenc,h264_amf,aac \
+    --enable-encoder=libx264,h264_nvenc,h264_amf,aac,webvtt \
     --enable-parser=hevc,av1,h264,aac,ac3,opus \
-    --enable-demuxer=matroska \
-    --enable-muxer=hls,mpegts \
+    --enable-demuxer=matroska,hls \
+    --enable-muxer=hls,mpegts,webvtt \
     --enable-protocol=file,pipe,http,https,tcp,tls \
     --enable-filter=scale,format \
     --enable-bsf=h264_mp4toannexb,aac_adtstoasc

@@ -205,18 +205,18 @@ build_ffmpeg() {
         \
         --enable-libx264 \
         \
-        --enable-decoder=hevc,av1,h264,aac,ac3,eac3,opus \
+        --enable-decoder=hevc,av1,h264,aac,ac3,eac3,opus,ass,ssa,subrip,webvtt,mov_text \
         --enable-decoder=h264_mediacodec,hevc_mediacodec,av1_mediacodec \
         \
         --enable-hwaccel=h264_mediacodec,hevc_mediacodec \
         \
-        --enable-encoder=libx264,aac \
+        --enable-encoder=libx264,aac,webvtt \
         --enable-encoder=h264_mediacodec \
         \
         --enable-parser=hevc,av1,h264,aac,ac3,opus \
         \
         --enable-demuxer=matroska,hls \
-        --enable-muxer=hls,mpegts \
+        --enable-muxer=hls,mpegts,webvtt \
         \
         --enable-protocol=file,pipe,http,https,tcp,tls \
         \
