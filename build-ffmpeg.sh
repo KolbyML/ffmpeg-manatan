@@ -183,11 +183,11 @@ sed -i 's/enabled ffnvcodec && check_pkg_config ffnvcodec/enabled ffnvcodec/g' c
     --enable-decoder=hevc,av1,h264,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
     --enable-hwaccel=h264_d3d11va,hevc_d3d11va,av1_d3d11va \
     --enable-encoder=libx264,h264_nvenc,h264_amf,aac,webvtt \
-    --enable-parser=hevc,av1,h264,aac,ac3,flac,opus \
+    --enable-parser=hevc,av1,h264,aac,ac3,eac3,flac,opus \
     --enable-demuxer=matroska,hls \
     --enable-muxer=hls,mpegts,webvtt \
     --enable-protocol=file,pipe,http,https,tcp,tls \
-    --enable-filter=scale,format \
+    --enable-filter=scale,format,aresample \
     --enable-bsf=h264_mp4toannexb,aac_adtstoasc
 
 # ----------------------------------------

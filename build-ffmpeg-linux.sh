@@ -136,7 +136,7 @@ export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
     --enable-encoder=h264_vaapi \
     \
     \
-    --enable-parser=hevc,av1,h264,aac,ac3,flac,opus \
+    --enable-parser=hevc,av1,h264,aac,ac3,eac3,flac,opus \
     \
     --enable-demuxer=matroska,hls \
     --enable-muxer=hls,mpegts,webvtt \
@@ -144,7 +144,7 @@ export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
     \
     --enable-protocol=file,pipe,http,https,tcp,tls \
     \
-    --enable-filter=scale,format,scale_vaapi \
+    --enable-filter=scale,format,scale_vaapi,aresample \
     \
     --enable-bsf=h264_mp4toannexb,aac_adtstoasc \
     \
