@@ -213,14 +213,14 @@ build_ffmpeg() {
         --enable-encoder=libx264,aac,webvtt \
         --enable-encoder=h264_mediacodec \
         \
-        --enable-parser=hevc,av1,h264,aac,ac3,flac,opus \
+        --enable-parser=hevc,av1,h264,aac,ac3,eac3,flac,opus \
         \
         --enable-demuxer=matroska,hls \
         --enable-muxer=hls,mpegts,webvtt \
         \
         --enable-protocol=file,pipe,http,https,tcp,tls \
         \
-        --enable-filter=scale,format \
+        --enable-filter=scale,format,aresample \
         \
         --enable-bsf=h264_mp4toannexb,aac_adtstoasc \
         \
