@@ -144,7 +144,7 @@ export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
     \
     --enable-protocol=file,pipe,http,https,tcp,tls \
     \
-    --enable-filter=scale,format,scale_vaapi,aresample \
+    --enable-filter=scale,format,scale_vaapi,hwupload,aresample \
     \
     --enable-bsf=h264_mp4toannexb,aac_adtstoasc \
     \
