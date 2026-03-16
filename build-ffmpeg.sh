@@ -29,6 +29,10 @@ export CC="${TOOLCHAIN}-gcc"
 export CXX="${TOOLCHAIN}-g++"
 export AR="${TOOLCHAIN}-ar"
 export RANLIB="${TOOLCHAIN}-ranlib"
+export ENABLE_NVENC="${ENABLE_NVENC:-1}"
+export ENABLE_AMF="${ENABLE_AMF:-1}"
+export SKIP_SYSTEM_DEPS="${SKIP_SYSTEM_DEPS:-0}"
+export RUN_HW_RUNTIME_SMOKE="${RUN_HW_RUNTIME_SMOKE:-0}"
 
 echo "================================================"
 echo "FFmpeg 7.1 Universal Build"
@@ -58,11 +62,23 @@ EOF
 # 1. Install Dependencies
 # ----------------------------------------
 echo "[1/6] Checking OS dependencies..."
-sudo apt-get update -qq
-sudo apt-get install -y -qq \
-    mingw-w64 pkg-config yasm nasm \
-    autoconf automake libtool git wget \
-    cmake make patch
+if [ "$SKIP_SYSTEM_DEPS" = "1" ]; then
+    echo "   Skipping system dependency installation"
+elif command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq \
+        mingw-w64 pkg-config yasm nasm \
+        autoconf automake libtool git wget \
+        cmake make patch
+elif command -v pacman >/dev/null 2>&1; then
+    pacman -Sy --noconfirm --needed \
+        base-devel git wget cmake make patch \
+        autoconf automake libtool pkgconf yasm nasm zip unzip tar xz \
+        mingw-w64-x86_64-toolchain
+else
+    echo "Unsupported package manager; install dependencies manually." >&2
+    exit 1
+fi
 
 # ----------------------------------------
 # 2. Build x264
@@ -87,37 +103,38 @@ fi
 # 3. Install AMF Headers
 # ----------------------------------------
 cd "$BUILD_DIR"
-if [ ! -d "$INSTALL_DIR/include/AMF" ]; then
-    echo "[4/6] Installing AMF..."
-    [ ! -d "AMF" ] && git clone --depth 1 https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git
-    mkdir -p "$INSTALL_DIR/include/AMF"
-    cp -r AMF/amf/public/include/* "$INSTALL_DIR/include/AMF/"
+if [ "$ENABLE_AMF" = "1" ]; then
+    if [ ! -d "$INSTALL_DIR/include/AMF" ]; then
+        echo "[3/6] Installing AMF..."
+        [ ! -d "AMF" ] && git clone --depth 1 https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git
+        mkdir -p "$INSTALL_DIR/include/AMF"
+        cp -r AMF/amf/public/include/* "$INSTALL_DIR/include/AMF/"
+    else
+        echo "[3/6] AMF already installed, skipping..."
+    fi
 else
-    echo "[3/6] AMF skipped..."
+    echo "[3/6] AMF disabled via ENABLE_AMF=0"
 fi
 
 # ----------------------------------------
 # 5. NVIDIA Headers
 # ----------------------------------------
 cd "$BUILD_DIR"
-if [ ! -f "$INSTALL_DIR/include/ffnvcodec/nvEncodeAPI.h" ]; then
-    echo "[5/6] Installing NVIDIA headers..."
-    rm -rf nv-codec-headers
-    git clone --depth 1 https://github.com/FFmpeg/nv-codec-headers.git
-    cd nv-codec-headers
-    make PREFIX="$INSTALL_DIR" install
-    cd ..
+if [ "$ENABLE_NVENC" = "1" ]; then
+    if [ ! -f "$INSTALL_DIR/include/ffnvcodec/nvEncodeAPI.h" ]; then
+        echo "[4/6] Installing NVIDIA headers..."
+        rm -rf nv-codec-headers
+        git clone --depth 1 https://github.com/FFmpeg/nv-codec-headers.git
+        cd nv-codec-headers
+        make PREFIX="$INSTALL_DIR" install
+        cd ..
+    else
+        echo "[4/6] NVIDIA headers already installed, skipping..."
+    fi
 else
-    echo "[5/6] NVIDIA headers skipped..."
+    echo "[4/6] NVENC disabled via ENABLE_NVENC=0"
 fi
 
-# FIX: Copy headers from ffnvcodec subdir to root include dir
-# FFmpeg's pkg-config points to include/ but headers are in include/ffnvcodec/
-if [ -d "$INSTALL_DIR/include/ffnvcodec" ]; then
-    cp -n "$INSTALL_DIR/include/ffnvcodec/"*.h "$INSTALL_DIR/include/" 2>/dev/null || true
-fi
-
-# FIX: Update ffnvcodec.pc to point to correct subdirectory
 if [ -f "$INSTALL_DIR/lib/pkgconfig/ffnvcodec.pc" ]; then
     sed -i 's|includedir=\${prefix}/include|includedir=${prefix}/include/ffnvcodec|' "$INSTALL_DIR/lib/pkgconfig/ffnvcodec.pc"
 fi
@@ -146,13 +163,20 @@ cd "$BUILD_DIR/ffmpeg-7.1"
 
 echo "[6/7] Configuring FFmpeg..."
 
-# 1. FORCE THE PATHS: Point directly to where the headers and libs are
 export CFLAGS="-I$INSTALL_DIR/include -I$INSTALL_DIR/include/ffnvcodec"
 export LDFLAGS="-L$INSTALL_DIR/lib"
 export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig"
 
-# 2. BYPASS THE AUTO-CHECK: We use sed to "lie" to the configure script.
-sed -i 's/enabled ffnvcodec && check_pkg_config ffnvcodec/enabled ffnvcodec/g' configure
+CONFIGURE_HW_ARGS=("--enable-d3d11va")
+
+if [ "$ENABLE_NVENC" = "1" ]; then
+    pkg-config --exists ffnvcodec
+    CONFIGURE_HW_ARGS+=("--enable-nvenc" "--enable-ffnvcodec" "--enable-encoder=h264_nvenc")
+fi
+
+if [ "$ENABLE_AMF" = "1" ]; then
+    CONFIGURE_HW_ARGS+=("--enable-amf" "--enable-encoder=h264_amf")
+fi
 
 ./configure \
     --prefix="$INSTALL_DIR" \
@@ -169,8 +193,6 @@ sed -i 's/enabled ffnvcodec && check_pkg_config ffnvcodec/enabled ffnvcodec/g' c
     --disable-everything \
     --enable-small \
     --enable-gpl \
-    --enable-nvenc \
-    --enable-ffnvcodec \
     --disable-autodetect \
     --disable-debug \
     --disable-doc \
@@ -178,17 +200,16 @@ sed -i 's/enabled ffnvcodec && check_pkg_config ffnvcodec/enabled ffnvcodec/g' c
     --enable-avcodec --enable-avformat --enable-avutil \
     --enable-swscale --enable-swresample --enable-avfilter \
     --enable-libx264 \
-    --enable-amf \
-    --enable-d3d11va \
     --enable-decoder=hevc,av1,h264,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
     --enable-hwaccel=h264_d3d11va,hevc_d3d11va,av1_d3d11va \
-    --enable-encoder=libx264,h264_nvenc,h264_amf,aac,webvtt \
+    --enable-encoder=libx264,aac,webvtt \
     --enable-parser=hevc,av1,h264,aac,ac3,eac3,flac,opus \
     --enable-demuxer=matroska,hls \
     --enable-muxer=hls,mpegts,webvtt \
     --enable-protocol=file,pipe,http,https,tcp,tls \
     --enable-filter=scale,format,aresample \
-    --enable-bsf=h264_mp4toannexb,aac_adtstoasc
+    --enable-bsf=h264_mp4toannexb,aac_adtstoasc \
+    "${CONFIGURE_HW_ARGS[@]}"
 
 # ----------------------------------------
 # 7. Build
@@ -202,6 +223,33 @@ make install
 if [ -f "$INSTALL_DIR/bin/ffmpeg.exe" ]; then
     ${TOOLCHAIN}-strip "$INSTALL_DIR/bin/ffmpeg.exe"
     echo "   Stripped binary for smaller size"
+fi
+
+run_hw_smoke_test() {
+    local label="$1"
+    shift
+    echo "   Running $label smoke test..."
+    "$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -loglevel error \
+        -f lavfi -i testsrc2=size=128x72:rate=24 \
+        -frames:v 1 -an -c:v "$@" \
+        -pix_fmt yuv420p -profile:v high \
+        -f null - >/dev/null
+}
+
+if [ "$RUN_HW_RUNTIME_SMOKE" = "1" ]; then
+    echo ""
+    echo "[7.5/8] Verifying hardware paths..."
+
+    if [ "$ENABLE_NVENC" = "1" ]; then
+        run_hw_smoke_test "NVENC" h264_nvenc -preset p4 -tune hq -rc vbr -cq 24 -b:v 0 -maxrate 12M -bufsize 24M
+    fi
+
+    if [ "$ENABLE_AMF" = "1" ]; then
+        run_hw_smoke_test "AMF" h264_amf -usage transcoding -quality speed -rc cqp -qp_i 24 -qp_p 26
+    fi
+else
+    echo ""
+    echo "[7.5/8] Skipping runtime hardware smoke tests (RUN_HW_RUNTIME_SMOKE=0)"
 fi
 
 # ----------------------------------------
