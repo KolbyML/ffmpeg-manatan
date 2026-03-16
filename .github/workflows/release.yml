@@ -9,13 +9,50 @@ permissions:
 
 jobs:
   build-windows:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
-      
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            base-devel
+            git
+            wget
+            cmake
+            make
+            patch
+            autoconf
+            automake
+            libtool
+            pkgconf
+            yasm
+            nasm
+            zip
+            unzip
+            tar
+            xz
+            mingw-w64-x86_64-toolchain
+
       - name: Build FFmpeg (Windows)
+        env:
+          SKIP_SYSTEM_DEPS: "1"
+          RUN_HW_RUNTIME_SMOKE: "0"
         run: bash build-ffmpeg.sh
-        
+
+      - name: Smoke Test Windows FFmpeg features
+        run: |
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -i "h264_nvenc"
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -i "h264_amf"
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -hwaccels | grep -i "d3d11va"
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " hevc "
+
       - name: Verify Output
         run: |
           echo "📦 Build artifacts:"

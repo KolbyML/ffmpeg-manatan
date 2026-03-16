@@ -31,6 +31,8 @@ export AR="${TOOLCHAIN}-ar"
 export RANLIB="${TOOLCHAIN}-ranlib"
 export ENABLE_NVENC="${ENABLE_NVENC:-1}"
 export ENABLE_AMF="${ENABLE_AMF:-1}"
+export SKIP_SYSTEM_DEPS="${SKIP_SYSTEM_DEPS:-0}"
+export RUN_HW_RUNTIME_SMOKE="${RUN_HW_RUNTIME_SMOKE:-0}"
 
 echo "================================================"
 echo "FFmpeg 7.1 Universal Build"
@@ -60,11 +62,23 @@ EOF
 # 1. Install Dependencies
 # ----------------------------------------
 echo "[1/6] Checking OS dependencies..."
-sudo apt-get update -qq
-sudo apt-get install -y -qq \
-    mingw-w64 pkg-config yasm nasm \
-    autoconf automake libtool git wget \
-    cmake make patch
+if [ "$SKIP_SYSTEM_DEPS" = "1" ]; then
+    echo "   Skipping system dependency installation"
+elif command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq \
+        mingw-w64 pkg-config yasm nasm \
+        autoconf automake libtool git wget \
+        cmake make patch
+elif command -v pacman >/dev/null 2>&1; then
+    pacman -Sy --noconfirm --needed \
+        base-devel git wget cmake make patch \
+        autoconf automake libtool pkgconf yasm nasm zip unzip tar xz \
+        mingw-w64-x86_64-toolchain
+else
+    echo "Unsupported package manager; install dependencies manually." >&2
+    exit 1
+fi
 
 # ----------------------------------------
 # 2. Build x264
@@ -222,15 +236,20 @@ run_hw_smoke_test() {
         -f null - >/dev/null
 }
 
-echo ""
-echo "[7.5/8] Verifying hardware paths..."
+if [ "$RUN_HW_RUNTIME_SMOKE" = "1" ]; then
+    echo ""
+    echo "[7.5/8] Verifying hardware paths..."
 
-if [ "$ENABLE_NVENC" = "1" ]; then
-    run_hw_smoke_test "NVENC" h264_nvenc -preset p4 -tune hq -rc vbr -cq 24 -b:v 0 -maxrate 12M -bufsize 24M
-fi
+    if [ "$ENABLE_NVENC" = "1" ]; then
+        run_hw_smoke_test "NVENC" h264_nvenc -preset p4 -tune hq -rc vbr -cq 24 -b:v 0 -maxrate 12M -bufsize 24M
+    fi
 
-if [ "$ENABLE_AMF" = "1" ]; then
-    run_hw_smoke_test "AMF" h264_amf -usage transcoding -quality speed -rc cqp -qp_i 24 -qp_p 26
+    if [ "$ENABLE_AMF" = "1" ]; then
+        run_hw_smoke_test "AMF" h264_amf -usage transcoding -quality speed -rc cqp -qp_i 24 -qp_p 26
+    fi
+else
+    echo ""
+    echo "[7.5/8] Skipping runtime hardware smoke tests (RUN_HW_RUNTIME_SMOKE=0)"
 fi
 
 # ----------------------------------------
