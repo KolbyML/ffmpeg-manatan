@@ -200,14 +200,14 @@ fi
     --enable-avcodec --enable-avformat --enable-avutil \
     --enable-swscale --enable-swresample --enable-avfilter \
     --enable-libx264 \
-    --enable-decoder=hevc,av1,h264,aac,ac3,eac3,opus,ass,ssa,subrip,webvtt,mov_text \
+    --enable-decoder=hevc,av1,h264,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
     --enable-hwaccel=h264_d3d11va,hevc_d3d11va,av1_d3d11va \
     --enable-encoder=libx264,aac,webvtt \
-    --enable-parser=hevc,av1,h264,aac,ac3,opus \
+    --enable-parser=hevc,av1,h264,aac,ac3,eac3,flac,opus \
     --enable-demuxer=matroska,hls \
     --enable-muxer=hls,mpegts,webvtt \
     --enable-protocol=file,pipe,http,https,tcp,tls \
-    --enable-filter=scale,format \
+    --enable-filter=scale,format,aresample \
     --enable-bsf=h264_mp4toannexb,aac_adtstoasc \
     "${CONFIGURE_HW_ARGS[@]}"
 
