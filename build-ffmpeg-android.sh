@@ -107,6 +107,14 @@ build_openh264() {
         PREFIX="$OUTPUT_DIR/$ARCH" \
         install-static \
         V=No
+
+    if [ -f "$OUTPUT_DIR/$ARCH/lib/pkgconfig/openh264.pc" ]; then
+        if grep -q '^Libs\.private:' "$OUTPUT_DIR/$ARCH/lib/pkgconfig/openh264.pc"; then
+            sed -i 's/^Libs\.private:.*/Libs.private: -lc++_static/' "$OUTPUT_DIR/$ARCH/lib/pkgconfig/openh264.pc"
+        else
+            echo 'Libs.private: -lc++_static' >> "$OUTPUT_DIR/$ARCH/lib/pkgconfig/openh264.pc"
+        fi
+    fi
     
     echo "   ✅ OpenH264 built"
     cd ..
@@ -167,6 +175,7 @@ EOF
         --cpu=$CPU \
         --cc=$CC \
         --cxx=$CXX \
+        --ld=$CXX \
         --ar=$AR \
         --ranlib=$RANLIB \
         --strip=$STRIP \

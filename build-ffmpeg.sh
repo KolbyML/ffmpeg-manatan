@@ -31,8 +31,8 @@ export PKG_CONFIG_LIBDIR="$INSTALL_DIR/lib/pkgconfig"
 
 export CC="${TOOLCHAIN}-gcc"
 export CXX="${TOOLCHAIN}-g++"
-export AR="${TOOLCHAIN}-ar"
-export RANLIB="${TOOLCHAIN}-ranlib"
+export AR="${TOOLCHAIN}-gcc-ar"
+export RANLIB="${TOOLCHAIN}-gcc-ranlib"
 export ENABLE_NVENC="${ENABLE_NVENC:-1}"
 export ENABLE_AMF="${ENABLE_AMF:-1}"
 export SKIP_SYSTEM_DEPS="${SKIP_SYSTEM_DEPS:-0}"
@@ -195,6 +195,7 @@ fi
     --target-os=mingw32 \
     --arch=x86_64 \
     --cross-prefix=${TOOLCHAIN}- \
+    --ld="$CXX" \
     --enable-cross-compile \
     --pkg-config="pkg-config" \
     --pkg-config-flags="--static" \
