@@ -48,9 +48,11 @@ jobs:
 
       - name: Smoke Test Windows FFmpeg features
         run: |
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -i "libopenh264"
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -i "h264_nvenc"
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -i "h264_amf"
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -hwaccels | grep -i "d3d11va"
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " h264 "
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " hevc "
 
       - name: Verify Output

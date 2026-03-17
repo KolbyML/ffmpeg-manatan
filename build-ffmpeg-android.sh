@@ -72,67 +72,43 @@ else
 fi
 
 # ----------------------------------------
-# 2. Build x264
+# 2. Build OpenH264
 # ----------------------------------------
-build_x264() {
+build_openh264() {
     ARCH=$1
     
-    echo "[2/3] Building x264 for $ARCH..."
+    echo "[2/3] Building OpenH264 for $ARCH..."
     
     cd "$BUILD_DIR"
     
-    if [ -f "$OUTPUT_DIR/$ARCH/lib/libx264.a" ]; then
+    if [ -f "$OUTPUT_DIR/$ARCH/lib/libopenh264.a" ]; then
         echo "   Already built, skipping..."
         return
     fi
     
-    if [ ! -d "x264" ]; then
-        git clone --depth 1 https://code.videolan.org/videolan/x264.git
+    if [ ! -d "openh264" ]; then
+        git clone --depth 1 https://github.com/cisco/openh264.git
     fi
-    
-    cd x264
-    make distclean 2>/dev/null || true
-    
-    SYSROOT="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
     
     if [ "$ARCH" == "arm64-v8a" ]; then
-        HOST="aarch64-linux-android"
-        CC="$TOOLCHAIN/aarch64-linux-android${API_LEVEL}-clang"
-        CXX="$TOOLCHAIN/aarch64-linux-android${API_LEVEL}-clang++"
-        AS="$TOOLCHAIN/aarch64-linux-android${API_LEVEL}-clang"
-        AR="$TOOLCHAIN/llvm-ar"
-        RANLIB="$TOOLCHAIN/llvm-ranlib"
-        STRIP="$TOOLCHAIN/llvm-strip"
+        OPENH264_ARCH="arm64"
     else
-        HOST="armv7a-linux-androideabi"
-        CC="$TOOLCHAIN/armv7a-linux-androideabi${API_LEVEL}-clang"
-        CXX="$TOOLCHAIN/armv7a-linux-androideabi${API_LEVEL}-clang++"
-        AS="$TOOLCHAIN/armv7a-linux-androideabi${API_LEVEL}-clang"
-        AR="$TOOLCHAIN/llvm-ar"
-        RANLIB="$TOOLCHAIN/llvm-ranlib"
-        STRIP="$TOOLCHAIN/llvm-strip"
+        OPENH264_ARCH="arm"
     fi
     
-    # Export for x264 configure
-    export CC CXX AS AR RANLIB STRIP
+    cd openh264
+    make clean 2>/dev/null || true
+    make -j$(nproc) \
+        OS=android \
+        ARCH="$OPENH264_ARCH" \
+        NDKROOT="$ANDROID_NDK_HOME" \
+        TARGET="android-$API_LEVEL" \
+        NDKLEVEL="$API_LEVEL" \
+        PREFIX="$OUTPUT_DIR/$ARCH" \
+        install-static \
+        V=No
     
-    ./configure \
-        --prefix="$OUTPUT_DIR/$ARCH" \
-        --host=$HOST \
-        --sysroot=$SYSROOT \
-        --enable-static \
-        --enable-pic \
-        --disable-cli \
-        --disable-opencl \
-        --extra-cflags="-fPIC -DANDROID"
-    
-    make -j$(nproc)
-    make install
-    
-    # Unset exports
-    unset CC CXX AS AR RANLIB STRIP
-    
-    echo "   ✅ x264 built"
+    echo "   ✅ OpenH264 built"
     cd ..
 }
 # ----------------------------------------
@@ -192,7 +168,6 @@ build_ffmpeg() {
         --disable-shared \
         --disable-everything \
         --enable-small \
-        --enable-gpl \
         --disable-autodetect \
         --disable-debug \
         --disable-doc \
@@ -203,14 +178,14 @@ build_ffmpeg() {
         --enable-mediacodec \
         --enable-jni \
         \
-        --enable-libx264 \
+        --enable-libopenh264 \
         \
         --enable-decoder=hevc,av1,h264,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
         --enable-decoder=h264_mediacodec,hevc_mediacodec,av1_mediacodec \
         \
         --enable-hwaccel=h264_mediacodec,hevc_mediacodec \
         \
-        --enable-encoder=libx264,aac,webvtt \
+        --enable-encoder=libopenh264,aac,webvtt \
         --enable-encoder=h264_mediacodec \
         \
         --enable-parser=hevc,av1,h264,aac,ac3,eac3,flac,opus \
@@ -241,7 +216,7 @@ for ARCH in $ARCHS; do
     echo "================================================"
     echo "Building for $ARCH"
     echo "================================================"
-    build_x264 $ARCH
+    build_openh264 $ARCH
     build_ffmpeg $ARCH
 done
 
@@ -280,5 +255,5 @@ done
 echo ""
 echo "📱 Features included:"
 echo "   ✅ MediaCodec (Android HW decode/encode)"
-echo "   ✅ libx264 (Software fallback)"
+echo "   ✅ libopenh264 (Software fallback)"
 echo "   ✅ MKV input"

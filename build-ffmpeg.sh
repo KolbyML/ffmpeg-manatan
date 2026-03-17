@@ -81,21 +81,29 @@ else
 fi
 
 # ----------------------------------------
-# 2. Build x264
+# 2. Build OpenH264
 # ----------------------------------------
 cd "$BUILD_DIR"
-if [ ! -f "$INSTALL_DIR/lib/libx264.a" ]; then
-    echo "[2/6] Building x264..."
-    if [ ! -d "x264" ]; then
-        git clone --depth 1 https://code.videolan.org/videolan/x264.git
+if [ ! -f "$INSTALL_DIR/lib/libopenh264.a" ]; then
+    echo "[2/6] Building OpenH264..."
+    if [ ! -d "openh264" ]; then
+        git clone --depth 1 https://github.com/cisco/openh264.git
     fi
-    cd x264
-    ./configure --prefix="$INSTALL_DIR" --host=${TOOLCHAIN} --cross-prefix=${TOOLCHAIN}- --enable-static --disable-cli --disable-opencl
-    make -j$(nproc)
-    make install
+    cd openh264
+    make clean 2>/dev/null || true
+    make -j$(nproc) \
+        OS=mingw_nt \
+        ARCH=x86_64 \
+        CC="$CC" \
+        CXX="$CXX" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        PREFIX="$INSTALL_DIR" \
+        install-static \
+        V=No
     cd ..
 else
-    echo "[2/6] x264 already built, skipping..."
+    echo "[2/6] OpenH264 already built, skipping..."
 fi
 
 
@@ -192,17 +200,16 @@ fi
     --disable-shared \
     --disable-everything \
     --enable-small \
-    --enable-gpl \
     --disable-autodetect \
     --disable-debug \
     --disable-doc \
     --enable-ffmpeg \
     --enable-avcodec --enable-avformat --enable-avutil \
     --enable-swscale --enable-swresample --enable-avfilter \
-    --enable-libx264 \
+    --enable-libopenh264 \
     --enable-decoder=hevc,av1,h264,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
     --enable-hwaccel=h264_d3d11va,hevc_d3d11va,av1_d3d11va \
-    --enable-encoder=libx264,aac,webvtt \
+    --enable-encoder=libopenh264,aac,webvtt \
     --enable-parser=hevc,av1,h264,aac,ac3,eac3,flac,opus \
     --enable-demuxer=matroska,hls \
     --enable-muxer=hls,mpegts,webvtt \

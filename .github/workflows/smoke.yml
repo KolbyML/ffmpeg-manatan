@@ -1,0 +1,114 @@
+name: Build Script Smoke Tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-windows:
+    name: Windows build smoke
+    runs-on: windows-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            base-devel
+            git
+            wget
+            cmake
+            make
+            patch
+            autoconf
+            automake
+            libtool
+            pkgconf
+            yasm
+            nasm
+            zip
+            unzip
+            tar
+            xz
+            mingw-w64-x86_64-toolchain
+
+      - name: Build FFmpeg (Windows)
+        env:
+          SKIP_SYSTEM_DEPS: "1"
+          RUN_HW_RUNTIME_SMOKE: "0"
+        run: bash build-ffmpeg.sh
+
+      - name: Verify Windows software + hardware codecs compiled
+        run: |
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -i "libopenh264"
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -i "h264_nvenc"
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -i "h264_amf"
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -hwaccels | grep -i "d3d11va"
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " h264 "
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " hevc "
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " av1 "
+
+  smoke-linux:
+    name: Linux build smoke
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build FFmpeg (Linux)
+        run: bash build-ffmpeg-linux.sh
+
+      - name: Verify Linux codecs compiled
+        run: |
+          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -encoders | grep -i "libopenh264"
+          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -encoders | grep -i "h264_vaapi"
+          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -hwaccels | grep -i "vaapi"
+
+  smoke-android:
+    name: Android build smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build FFmpeg (Android)
+        run: bash build-ffmpeg-android.sh
+
+      - name: Verify Android archive contents
+        run: |
+          test -f dist/ffmpeg-android.zip
+          unzip -l dist/ffmpeg-android.zip | grep "arm64-v8a/bin/ffmpeg"
+          unzip -l dist/ffmpeg-android.zip | grep "arm64-v8a/lib/libopenh264.a"
+          unzip -l dist/ffmpeg-android.zip | grep "armeabi-v7a/bin/ffmpeg"
+          unzip -l dist/ffmpeg-android.zip | grep "armeabi-v7a/lib/libopenh264.a"
+
+  smoke-macos:
+    name: macOS build smoke
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build FFmpeg (macOS)
+        run: bash build-ffmpeg-macos.sh
+
+      - name: Verify macOS codecs compiled
+        run: |
+          HOST_ARCH="$(uname -m)"
+          FFMPEG_BIN="./ffmpeg-macos-output/${HOST_ARCH}/bin/ffmpeg"
+          test -x "$FFMPEG_BIN"
+          test -x ./ffmpeg-macos-output/arm64/bin/ffmpeg
+          test -x ./ffmpeg-macos-output/x86_64/bin/ffmpeg
+          "$FFMPEG_BIN" -hide_banner -encoders | grep -i "libopenh264"
+          "$FFMPEG_BIN" -hide_banner -encoders | grep -i "h264_videotoolbox"
+          "$FFMPEG_BIN" -hide_banner -hwaccels | grep -i "videotoolbox"
