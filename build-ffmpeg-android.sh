@@ -148,6 +148,17 @@ build_ffmpeg() {
     
     export PKG_CONFIG_PATH="$OUTPUT_DIR/$ARCH/lib/pkgconfig"
     export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/$ARCH/lib/pkgconfig"
+
+    PKG_CONFIG_WRAPPER="$BUILD_DIR/pkg-config-$ARCH.sh"
+    cat > "$PKG_CONFIG_WRAPPER" <<EOF
+#!/usr/bin/env bash
+export PKG_CONFIG_PATH="$OUTPUT_DIR/$ARCH/lib/pkgconfig"
+export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/$ARCH/lib/pkgconfig"
+exec pkg-config "\$@"
+EOF
+    chmod +x "$PKG_CONFIG_WRAPPER"
+
+    "$PKG_CONFIG_WRAPPER" --exists openh264
     
     ./configure \
         --prefix="$OUTPUT_DIR/$ARCH" \
@@ -162,7 +173,8 @@ build_ffmpeg() {
         --nm=$NM \
         --cross-prefix=$CROSS_PREFIX \
         --sysroot=$SYSROOT \
-        --pkg-config="pkg-config" \
+        --pkg-config="$PKG_CONFIG_WRAPPER" \
+        --pkg-config-flags="--static" \
         --enable-cross-compile \
         --enable-static \
         --disable-shared \

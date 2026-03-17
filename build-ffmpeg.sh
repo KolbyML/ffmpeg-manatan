@@ -7,7 +7,11 @@ set -e
 
 # === Output Configuration ===
 if [ -n "$GITHUB_WORKSPACE" ]; then
-    WORKSPACE="$GITHUB_WORKSPACE"
+    if command -v cygpath >/dev/null 2>&1; then
+        WORKSPACE="$(cygpath -u "$GITHUB_WORKSPACE")"
+    else
+        WORKSPACE="$GITHUB_WORKSPACE"
+    fi
 else
     WORKSPACE="$(pwd)"
 fi
