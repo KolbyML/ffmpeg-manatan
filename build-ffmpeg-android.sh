@@ -140,6 +140,7 @@ build_ffmpeg() {
         STRIP="$TOOLCHAIN/llvm-strip"
         NM="$TOOLCHAIN/llvm-nm"
         CPU="armv8-a"
+        OPENH264_EXTRA_LIBS="-lc++_static"
     else
         TARGET_ARCH="arm"
         CROSS_PREFIX="$TOOLCHAIN/armv7a-linux-androideabi${API_LEVEL}-"
@@ -150,6 +151,7 @@ build_ffmpeg() {
         STRIP="$TOOLCHAIN/llvm-strip"
         NM="$TOOLCHAIN/llvm-nm"
         CPU="armv7-a"
+        OPENH264_EXTRA_LIBS="-lc++_static -latomic"
     fi
     
     SYSROOT="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
@@ -172,7 +174,7 @@ case " \$* " in
     *" --libs "*|*" --static "*)
         case " \$* " in
             *" openh264 "*)
-                printf '%s %s\n' "\$output" "-lc++_static"
+                printf '%s %s\n' "\$output" "$OPENH264_EXTRA_LIBS"
                 ;;
             *)
                 printf '%s\n' "\$output"
