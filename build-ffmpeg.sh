@@ -7,7 +7,11 @@ set -e
 
 # === Output Configuration ===
 if [ -n "$GITHUB_WORKSPACE" ]; then
-    WORKSPACE="$GITHUB_WORKSPACE"
+    if command -v cygpath >/dev/null 2>&1; then
+        WORKSPACE="$(cygpath -u "$GITHUB_WORKSPACE")"
+    else
+        WORKSPACE="$GITHUB_WORKSPACE"
+    fi
 else
     WORKSPACE="$(pwd)"
 fi
@@ -27,8 +31,12 @@ export PKG_CONFIG_LIBDIR="$INSTALL_DIR/lib/pkgconfig"
 
 export CC="${TOOLCHAIN}-gcc"
 export CXX="${TOOLCHAIN}-g++"
-export AR="${TOOLCHAIN}-ar"
-export RANLIB="${TOOLCHAIN}-ranlib"
+export AR="${TOOLCHAIN}-gcc-ar"
+export RANLIB="${TOOLCHAIN}-gcc-ranlib"
+export STRIP="${TOOLCHAIN}-strip"
+if ! command -v "$STRIP" >/dev/null 2>&1; then
+    export STRIP="strip"
+fi
 export ENABLE_NVENC="${ENABLE_NVENC:-1}"
 export ENABLE_AMF="${ENABLE_AMF:-1}"
 export SKIP_SYSTEM_DEPS="${SKIP_SYSTEM_DEPS:-0}"
@@ -41,6 +49,7 @@ echo "  WORKSPACE:   $WORKSPACE"
 echo "  BUILD_DIR:   $BUILD_DIR"
 echo "  OUTPUT_DIR:  $OUTPUT_DIR"
 echo "  DIST_DIR:    $DIST_DIR"
+echo "  STRIP:       $STRIP"
 echo "================================================"
 
 # ----------------------------------------
@@ -81,21 +90,29 @@ else
 fi
 
 # ----------------------------------------
-# 2. Build x264
+# 2. Build OpenH264
 # ----------------------------------------
 cd "$BUILD_DIR"
-if [ ! -f "$INSTALL_DIR/lib/libx264.a" ]; then
-    echo "[2/6] Building x264..."
-    if [ ! -d "x264" ]; then
-        git clone --depth 1 https://code.videolan.org/videolan/x264.git
+if [ ! -f "$INSTALL_DIR/lib/libopenh264.a" ]; then
+    echo "[2/6] Building OpenH264..."
+    if [ ! -d "openh264" ]; then
+        git clone --depth 1 https://github.com/cisco/openh264.git
     fi
-    cd x264
-    ./configure --prefix="$INSTALL_DIR" --host=${TOOLCHAIN} --cross-prefix=${TOOLCHAIN}- --enable-static --disable-cli --disable-opencl
-    make -j$(nproc)
-    make install
+    cd openh264
+    make clean 2>/dev/null || true
+    make -j$(nproc) \
+        OS=mingw_nt \
+        ARCH=x86_64 \
+        CC="$CC" \
+        CXX="$CXX" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        PREFIX="$INSTALL_DIR" \
+        install-static \
+        V=No
     cd ..
 else
-    echo "[2/6] x264 already built, skipping..."
+    echo "[2/6] OpenH264 already built, skipping..."
 fi
 
 
@@ -182,7 +199,13 @@ fi
     --prefix="$INSTALL_DIR" \
     --target-os=mingw32 \
     --arch=x86_64 \
+    --cc="$CC" \
+    --cxx="$CXX" \
+    --ar="$AR" \
+    --ranlib="$RANLIB" \
+    --strip="$STRIP" \
     --cross-prefix=${TOOLCHAIN}- \
+    --ld="$CXX" \
     --enable-cross-compile \
     --pkg-config="pkg-config" \
     --pkg-config-flags="--static" \
@@ -192,17 +215,16 @@ fi
     --disable-shared \
     --disable-everything \
     --enable-small \
-    --enable-gpl \
     --disable-autodetect \
     --disable-debug \
     --disable-doc \
     --enable-ffmpeg \
     --enable-avcodec --enable-avformat --enable-avutil \
     --enable-swscale --enable-swresample --enable-avfilter \
-    --enable-libx264 \
+    --enable-libopenh264 \
     --enable-decoder=hevc,av1,h264,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
     --enable-hwaccel=h264_d3d11va,hevc_d3d11va,av1_d3d11va \
-    --enable-encoder=libx264,aac,webvtt \
+    --enable-encoder=libopenh264,aac,webvtt \
     --enable-parser=hevc,av1,h264,aac,ac3,eac3,flac,opus \
     --enable-demuxer=matroska,hls \
     --enable-muxer=hls,mpegts,webvtt \
@@ -221,7 +243,7 @@ make install
 
 # Strip debug symbols from binary for smaller size
 if [ -f "$INSTALL_DIR/bin/ffmpeg.exe" ]; then
-    ${TOOLCHAIN}-strip "$INSTALL_DIR/bin/ffmpeg.exe"
+    "$STRIP" "$INSTALL_DIR/bin/ffmpeg.exe"
     echo "   Stripped binary for smaller size"
 fi
 

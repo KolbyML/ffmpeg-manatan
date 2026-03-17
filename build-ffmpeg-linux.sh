@@ -67,33 +67,29 @@ else
 fi
 
 # ----------------------------------------
-# 3. Build x264
+# 3. Build OpenH264
 # ----------------------------------------
-echo "[3/4] Building x264..."
+echo "[3/4] Building OpenH264..."
 
 cd "$BUILD_DIR"
 
-if [ -f "$OUTPUT_DIR/lib/libx264.a" ]; then
+if [ -f "$OUTPUT_DIR/lib/libopenh264.a" ]; then
     echo "   Already built, skipping..."
 else
-    if [ ! -d "x264" ]; then
-        git clone --depth 1 https://code.videolan.org/videolan/x264.git
+    if [ ! -d "openh264" ]; then
+        git clone --depth 1 https://github.com/cisco/openh264.git
     fi
     
-    cd x264
-    make distclean 2>/dev/null || true
+    cd openh264
+    make clean 2>/dev/null || true
+    make -j$(nproc) \
+        OS=linux \
+        ARCH=x86_64 \
+        PREFIX="$OUTPUT_DIR" \
+        install-static \
+        V=No
     
-    ./configure \
-        --prefix="$OUTPUT_DIR" \
-        --enable-static \
-        --enable-pic \
-        --disable-cli \
-        --disable-opencl
-    
-    make -j$(nproc)
-    make install
-    
-    echo "   ✅ x264 built"
+    echo "   ✅ OpenH264 built"
     cd ..
 fi
 
@@ -105,7 +101,7 @@ echo "[4/4] Building FFmpeg..."
 cd "$BUILD_DIR/ffmpeg-7.1"
 make distclean 2>/dev/null || true
 
-# Set PKG_CONFIG_PATH so FFmpeg finds x264
+# Set PKG_CONFIG_PATH so FFmpeg finds OpenH264
 export PKG_CONFIG_PATH="$OUTPUT_DIR/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig"
 export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
 
@@ -115,7 +111,6 @@ export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
     --disable-shared \
     --disable-everything \
     --enable-small \
-    --enable-gpl \
     --disable-autodetect \
     --disable-debug \
     --disable-doc \
@@ -126,13 +121,13 @@ export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
     --enable-vaapi \
     --enable-libdrm \
     \
-    --enable-libx264 \
+    --enable-libopenh264 \
     \
     --enable-decoder=hevc,av1,h264,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
     \
     --enable-hwaccel=h264_vaapi,hevc_vaapi,av1_vaapi \
     \
-    --enable-encoder=libx264,aac,webvtt \
+    --enable-encoder=libopenh264,aac,webvtt \
     --enable-encoder=h264_vaapi \
     \
     \
@@ -239,13 +234,13 @@ echo "  -c:v h264_vaapi -c:a aac -f hls output.m3u8"
 echo ""
 echo "# Software Fallback:"
 echo "$OUTPUT_DIR/bin/ffmpeg -i input.mkv \\"
-echo "  -c:v libx264 -c:a aac -f hls output.m3u8"
+echo "  -c:v libopenh264 -c:a aac -f hls output.m3u8"
 echo ""
 echo "================================================"
 echo "📱 Features included:"
 echo "================================================"
 echo "   ✅ VAAPI (Linux HW decode/encode - Intel/AMD)"
-echo "   ✅ libx264 (Software fallback)"
+echo "   ✅ libopenh264 (Software fallback)"
 echo "   ✅ HLS output"
 echo "   ✅ MKV input"
 echo "   ✅ scale_vaapi filter"
@@ -255,5 +250,5 @@ echo "⚠️ WSL Note:"
 echo "================================================"
 echo "VAAPI requires actual GPU access."
 echo "On WSL2, you need GPU passthrough configured."
-echo "Without GPU, use software encoding (libx264)."
+echo "Without GPU, use software encoding (libopenh264)."
 echo "================================================"

@@ -40,7 +40,7 @@ echo "[1/4] Installing dependencies..."
 # Check if homebrew is available
 if command -v brew &> /dev/null; then
     echo "Using Homebrew..."
-    brew install yasm nasm pkg-config x264 2>/dev/null || true
+    brew install yasm nasm pkg-config wget 2>/dev/null || true
 else
     echo "Homebrew not found, using system tools..."
 fi
@@ -69,49 +69,36 @@ else
 fi
 
 # ----------------------------------------
-# 3. Build x264
+# 3. Build OpenH264
 # ----------------------------------------
-build_x264() {
+build_openh264() {
     ARCH=$1
     
-    echo "[3/4] Building x264 for $ARCH..."
+    echo "[3/4] Building OpenH264 for $ARCH..."
     
     cd "$BUILD_DIR"
     
-    if [ -f "$OUTPUT_DIR/$ARCH/lib/libx264.a" ]; then
+    if [ -f "$OUTPUT_DIR/$ARCH/lib/libopenh264.a" ]; then
         echo "   Already built, skipping..."
         return
     fi
     
-    if [ ! -d "x264" ]; then
-        git clone --depth 1 https://code.videolan.org/videolan/x264.git
+    if [ ! -d "openh264" ]; then
+        git clone --depth 1 https://github.com/cisco/openh264.git
     fi
     
-    cd x264
-    make distclean 2>/dev/null || true
+    cd openh264
+    make clean 2>/dev/null || true
+    make -j$(sysctl -n hw.ncpu) \
+        OS=darwin \
+        ARCH="$ARCH" \
+        CC=clang \
+        CXX=clang++ \
+        PREFIX="$OUTPUT_DIR/$ARCH" \
+        install-static \
+        V=No
     
-    if [ "$ARCH" == "arm64" ]; then
-        ./configure \
-            --prefix="$OUTPUT_DIR/$ARCH" \
-            --host=aarch64-apple-darwin \
-            --enable-static \
-            --disable-cli \
-            --disable-opencl \
-            --extra-cflags="-arch arm64"
-    else
-        ./configure \
-            --prefix="$OUTPUT_DIR/$ARCH" \
-            --host=x86_64-apple-darwin \
-            --enable-static \
-            --disable-cli \
-            --disable-opencl \
-            --extra-cflags="-arch x86_64"
-    fi
-    
-    make -j$(sysctl -n hw.ncpu)
-    make install
-    
-    echo "   ✅ x264 built for $ARCH"
+    echo "   ✅ OpenH264 built for $ARCH"
     cd ..
 }
 
@@ -148,7 +135,6 @@ build_ffmpeg() {
         --disable-shared \
         --disable-everything \
         --enable-small \
-        --enable-gpl \
         --disable-autodetect \
         --disable-debug \
         --disable-doc \
@@ -157,14 +143,14 @@ build_ffmpeg() {
         --enable-swscale --enable-swresample --enable-avfilter \
         \
         --enable-videotoolbox \
-        --enable-libx264 \
+        --enable-libopenh264 \
         \
         --enable-decoder=hevc,av1,h264,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
         --enable-decoder=h264_videotoolbox,hevc_videotoolbox \
         \
         --enable-hwaccel=h264_videotoolbox,hevc_videotoolbox \
         \
-        --enable-encoder=libx264,aac,webvtt \
+        --enable-encoder=libopenh264,aac,webvtt \
         --enable-encoder=h264_videotoolbox \
         \
         --enable-parser=hevc,av1,h264,aac,ac3,eac3,flac,opus \
@@ -195,7 +181,7 @@ for ARCH in $ARCHS; do
     echo "================================================"
     echo "Building for $ARCH"
     echo "================================================"
-    build_x264 $ARCH
+    build_openh264 $ARCH
     build_ffmpeg $ARCH
 done
 
@@ -236,7 +222,7 @@ echo "   $DIST_DIR/ffmpeg-macos.zip"
 echo ""
 echo "📱 Features included:"
 echo "   ✅ VideoToolbox (macOS HW decode/encode)"
-echo "   ✅ libx264 (Software fallback)"
+echo "   ✅ libopenh264 (Software fallback)"
 echo "   ✅ AV1, HEVC, H.264 decoding"
 echo "   ✅ MKV input, HLS output"
 echo ""
