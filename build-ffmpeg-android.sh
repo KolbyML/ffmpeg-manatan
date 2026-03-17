@@ -76,6 +76,7 @@ fi
 # ----------------------------------------
 build_openh264() {
     ARCH=$1
+    OPENH264_DIR="$BUILD_DIR/openh264-$ARCH"
     
     echo "[2/3] Building OpenH264 for $ARCH..."
     
@@ -86,8 +87,8 @@ build_openh264() {
         return
     fi
     
-    if [ ! -d "openh264" ]; then
-        git clone --depth 1 https://github.com/cisco/openh264.git
+    if [ ! -d "$OPENH264_DIR" ]; then
+        git clone --depth 1 https://github.com/cisco/openh264.git "$OPENH264_DIR"
     fi
     
     if [ "$ARCH" == "arm64-v8a" ]; then
@@ -96,7 +97,7 @@ build_openh264() {
         OPENH264_ARCH="arm"
     fi
     
-    cd openh264
+    cd "$OPENH264_DIR"
     make clean 2>/dev/null || true
     make -j$(nproc) \
         OS=android \
