@@ -174,7 +174,8 @@ case " \$* " in
     *" --libs "*|*" --static "*)
         case " \$* " in
             *" openh264 "*)
-                printf '%s %s\n' "\$output" "$OPENH264_EXTRA_LIBS"
+                cleaned_output=\$(printf '%s\n' "\$output" | sed 's/-lstdc++//g')
+                printf '%s %s\n' "\$cleaned_output" "$OPENH264_EXTRA_LIBS"
                 ;;
             *)
                 printf '%s\n' "\$output"
