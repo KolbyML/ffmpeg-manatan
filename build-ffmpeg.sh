@@ -33,6 +33,10 @@ export CC="${TOOLCHAIN}-gcc"
 export CXX="${TOOLCHAIN}-g++"
 export AR="${TOOLCHAIN}-gcc-ar"
 export RANLIB="${TOOLCHAIN}-gcc-ranlib"
+export STRIP="${TOOLCHAIN}-strip"
+if ! command -v "$STRIP" >/dev/null 2>&1; then
+    export STRIP="strip"
+fi
 export ENABLE_NVENC="${ENABLE_NVENC:-1}"
 export ENABLE_AMF="${ENABLE_AMF:-1}"
 export SKIP_SYSTEM_DEPS="${SKIP_SYSTEM_DEPS:-0}"
@@ -45,6 +49,7 @@ echo "  WORKSPACE:   $WORKSPACE"
 echo "  BUILD_DIR:   $BUILD_DIR"
 echo "  OUTPUT_DIR:  $OUTPUT_DIR"
 echo "  DIST_DIR:    $DIST_DIR"
+echo "  STRIP:       $STRIP"
 echo "================================================"
 
 # ----------------------------------------
@@ -198,6 +203,7 @@ fi
     --cxx="$CXX" \
     --ar="$AR" \
     --ranlib="$RANLIB" \
+    --strip="$STRIP" \
     --cross-prefix=${TOOLCHAIN}- \
     --ld="$CXX" \
     --enable-cross-compile \
@@ -237,7 +243,7 @@ make install
 
 # Strip debug symbols from binary for smaller size
 if [ -f "$INSTALL_DIR/bin/ffmpeg.exe" ]; then
-    ${TOOLCHAIN}-strip "$INSTALL_DIR/bin/ffmpeg.exe"
+    "$STRIP" "$INSTALL_DIR/bin/ffmpeg.exe"
     echo "   Stripped binary for smaller size"
 fi
 
