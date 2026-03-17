@@ -162,11 +162,33 @@ build_ffmpeg() {
 #!/usr/bin/env bash
 export PKG_CONFIG_PATH="$OUTPUT_DIR/$ARCH/lib/pkgconfig"
 export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/$ARCH/lib/pkgconfig"
-exec pkg-config "\$@"
+output=\$(pkg-config "\$@")
+status=\$?
+if [ \$status -ne 0 ]; then
+    exit \$status
+fi
+
+case " \$* " in
+    *" --libs "*|*" --static "*)
+        case " \$* " in
+            *" openh264 "*)
+                printf '%s %s\n' "\$output" "-lc++_static"
+                ;;
+            *)
+                printf '%s\n' "\$output"
+                ;;
+        esac
+        ;;
+    *)
+        printf '%s\n' "\$output"
+        ;;
+esac
 EOF
     chmod +x "$PKG_CONFIG_WRAPPER"
 
     "$PKG_CONFIG_WRAPPER" --exists openh264
+    echo "   OpenH264 version: $("$PKG_CONFIG_WRAPPER" --modversion openh264)"
+    echo "   OpenH264 libs: $("$PKG_CONFIG_WRAPPER" --libs --static openh264)"
     
     ./configure \
         --prefix="$OUTPUT_DIR/$ARCH" \
