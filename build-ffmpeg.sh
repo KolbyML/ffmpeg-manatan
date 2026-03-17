@@ -194,6 +194,10 @@ fi
     --prefix="$INSTALL_DIR" \
     --target-os=mingw32 \
     --arch=x86_64 \
+    --cc="$CC" \
+    --cxx="$CXX" \
+    --ar="$AR" \
+    --ranlib="$RANLIB" \
     --cross-prefix=${TOOLCHAIN}- \
     --ld="$CXX" \
     --enable-cross-compile \
