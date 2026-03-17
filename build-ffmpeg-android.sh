@@ -140,7 +140,7 @@ build_ffmpeg() {
         STRIP="$TOOLCHAIN/llvm-strip"
         NM="$TOOLCHAIN/llvm-nm"
         CPU="armv8-a"
-        OPENH264_EXTRA_LIBS="-lc++_static"
+        OPENH264_EXTRA_LIBS="-lc++_static -lc++abi -lunwind"
     else
         TARGET_ARCH="arm"
         CROSS_PREFIX="$TOOLCHAIN/armv7a-linux-androideabi${API_LEVEL}-"
@@ -151,7 +151,7 @@ build_ffmpeg() {
         STRIP="$TOOLCHAIN/llvm-strip"
         NM="$TOOLCHAIN/llvm-nm"
         CPU="armv7-a"
-        OPENH264_EXTRA_LIBS="-lc++_static -latomic"
+        OPENH264_EXTRA_LIBS="-lc++_static -lc++abi -lunwind -latomic"
     fi
     
     SYSROOT="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
@@ -193,7 +193,7 @@ EOF
     echo "   OpenH264 version: $("$PKG_CONFIG_WRAPPER" --modversion openh264)"
     echo "   OpenH264 libs: $("$PKG_CONFIG_WRAPPER" --libs --static openh264)"
     
-    ./configure \
+    if ! ./configure \
         --prefix="$OUTPUT_DIR/$ARCH" \
         --target-os=android \
         --arch=$TARGET_ARCH \
@@ -246,8 +246,13 @@ EOF
         --enable-bsf=h264_mp4toannexb,aac_adtstoasc \
         \
         --extra-cflags="-I$OUTPUT_DIR/$ARCH/include -fPIC -DANDROID -D__ANDROID_API__=$API_LEVEL" \
-        --extra-ldflags="-L$OUTPUT_DIR/$ARCH/lib -lm -llog"
-    
+        --extra-ldflags="-L$OUTPUT_DIR/$ARCH/lib -lm -llog" \
+        --extra-libs="$OPENH264_EXTRA_LIBS"; then
+        echo "   ❌ FFmpeg configure failed for $ARCH. Dumping ffbuild/config.log..."
+        cat ffbuild/config.log
+        return 1
+    fi
+
     make -j$(nproc)
     make install
     
