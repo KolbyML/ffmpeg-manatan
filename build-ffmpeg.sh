@@ -227,7 +227,7 @@ fi
     --enable-encoder=libopenh264,aac,rawvideo,webvtt \
     --enable-parser=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus \
     --enable-demuxer=matroska,hls \
-    --enable-muxer=hls,mpegts,rawvideo,webvtt \
+    --enable-muxer=hls,mpegts,mp4,rawvideo,webvtt \
     --enable-protocol=file,pipe,http,https,tcp,tls \
     --enable-filter=scale,format,aresample \
     --enable-bsf=h264_mp4toannexb,aac_adtstoasc \
