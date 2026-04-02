@@ -123,7 +123,7 @@ export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
     \
     --enable-libopenh264 \
     \
-    --enable-decoder=hevc,av1,h264,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
+    --enable-decoder=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
     \
     --enable-hwaccel=h264_vaapi,hevc_vaapi,av1_vaapi \
     \
@@ -131,10 +131,10 @@ export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
     --enable-encoder=h264_vaapi \
     \
     \
-    --enable-parser=hevc,av1,h264,aac,ac3,eac3,flac,opus \
+    --enable-parser=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus \
     \
     --enable-demuxer=matroska,hls \
-    --enable-muxer=hls,mpegts,webvtt \
+    --enable-muxer=hls,mpegts,rawvideo,webvtt \
     \
     \
     --enable-protocol=file,pipe,http,https,tcp,tls \
