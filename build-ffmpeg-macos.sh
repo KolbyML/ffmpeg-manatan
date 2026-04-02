@@ -150,7 +150,7 @@ build_ffmpeg() {
         \
         --enable-hwaccel=h264_videotoolbox,hevc_videotoolbox \
         \
-        --enable-encoder=libopenh264,aac,webvtt \
+        --enable-encoder=libopenh264,aac,rawvideo,webvtt \
         --enable-encoder=h264_videotoolbox \
         \
         --enable-parser=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus \
