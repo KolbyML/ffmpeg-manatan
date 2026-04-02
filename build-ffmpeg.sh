@@ -224,7 +224,7 @@ fi
     --enable-libopenh264 \
     --enable-decoder=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
     --enable-hwaccel=h264_d3d11va,hevc_d3d11va,av1_d3d11va \
-    --enable-encoder=libopenh264,aac,webvtt \
+    --enable-encoder=libopenh264,aac,rawvideo,webvtt \
     --enable-parser=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus \
     --enable-demuxer=matroska,hls \
     --enable-muxer=hls,mpegts,rawvideo,webvtt \

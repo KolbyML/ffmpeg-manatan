@@ -127,7 +127,7 @@ export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
     \
     --enable-hwaccel=h264_vaapi,hevc_vaapi,av1_vaapi \
     \
-    --enable-encoder=libopenh264,aac,webvtt \
+    --enable-encoder=libopenh264,aac,rawvideo,webvtt \
     --enable-encoder=h264_vaapi \
     \
     \

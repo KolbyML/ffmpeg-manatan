@@ -232,7 +232,7 @@ EOF
         \
         --enable-hwaccel=h264_mediacodec,hevc_mediacodec \
         \
-        --enable-encoder=libopenh264,aac,webvtt \
+        --enable-encoder=libopenh264,aac,rawvideo,webvtt \
         --enable-encoder=h264_mediacodec \
         \
         --enable-parser=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus \
