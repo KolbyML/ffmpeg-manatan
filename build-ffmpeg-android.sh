@@ -227,7 +227,7 @@ EOF
         \
         --enable-libopenh264 \
         \
-        --enable-decoder=hevc,av1,h264,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
+        --enable-decoder=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
         --enable-decoder=h264_mediacodec,hevc_mediacodec,av1_mediacodec \
         \
         --enable-hwaccel=h264_mediacodec,hevc_mediacodec \
@@ -235,10 +235,10 @@ EOF
         --enable-encoder=libopenh264,aac,webvtt \
         --enable-encoder=h264_mediacodec \
         \
-        --enable-parser=hevc,av1,h264,aac,ac3,eac3,flac,opus \
+        --enable-parser=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus \
         \
         --enable-demuxer=matroska,hls \
-        --enable-muxer=hls,mpegts,webvtt \
+        --enable-muxer=hls,mpegts,rawvideo,webvtt \
         \
         --enable-protocol=file,pipe,http,https,tcp,tls \
         \
