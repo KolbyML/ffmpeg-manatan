@@ -238,7 +238,7 @@ EOF
         --enable-parser=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus \
         \
         --enable-demuxer=matroska,hls \
-        --enable-muxer=hls,mpegts,rawvideo,webvtt \
+        --enable-muxer=hls,mpegts,mp4,rawvideo,webvtt \
         \
         --enable-protocol=file,pipe,http,https,tcp,tls \
         \
