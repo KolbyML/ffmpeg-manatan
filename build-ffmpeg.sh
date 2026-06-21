@@ -218,6 +218,7 @@ fi
     --disable-autodetect \
     --disable-debug \
     --disable-doc \
+    --enable-schannel \
     --enable-ffmpeg \
     --enable-avcodec --enable-avformat --enable-avutil \
     --enable-swscale --enable-swresample --enable-avfilter \
@@ -246,6 +247,11 @@ if [ -f "$INSTALL_DIR/bin/ffmpeg.exe" ]; then
     "$STRIP" "$INSTALL_DIR/bin/ffmpeg.exe"
     echo "   Stripped binary for smaller size"
 fi
+
+echo ""
+echo "[7.25/8] Verifying HTTPS protocol support..."
+"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
+"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
 
 run_hw_smoke_test() {
     local label="$1"

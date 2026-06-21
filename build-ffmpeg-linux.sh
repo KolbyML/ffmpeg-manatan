@@ -52,7 +52,8 @@ sudo apt-get install -y -qq \
     libva-x11-2 \
     vainfo \
     libdrm-dev \
-    zlib1g-dev
+    zlib1g-dev \
+    libgnutls28-dev
 
 # ----------------------------------------
 # 2. Download FFmpeg
@@ -114,6 +115,7 @@ export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
     --disable-autodetect \
     --disable-debug \
     --disable-doc \
+    --enable-gnutls \
     --enable-ffmpeg \
     --enable-avcodec --enable-avformat --enable-avutil \
     --enable-swscale --enable-swresample --enable-avfilter \
@@ -151,6 +153,11 @@ make install
 
 # Strip binary for smaller size
 strip "$OUTPUT_DIR/bin/ffmpeg"
+
+echo ""
+echo "Checking HTTPS protocol support..."
+"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
+"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
 
 echo "   ✅ FFmpeg built"
 

@@ -138,6 +138,7 @@ build_ffmpeg() {
         --disable-autodetect \
         --disable-debug \
         --disable-doc \
+        --enable-securetransport \
         --enable-ffmpeg \
         --enable-avcodec --enable-avformat --enable-avutil \
         --enable-swscale --enable-swresample --enable-avfilter \
@@ -173,6 +174,15 @@ build_ffmpeg() {
     echo "   ✅ FFmpeg built for $ARCH"
 }
 
+verify_https_protocols() {
+    FFMPEG_BIN=$1
+
+    echo ""
+    echo "Checking HTTPS protocol support in $FFMPEG_BIN..."
+    "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
+    "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
+}
+
 # ----------------------------------------
 # 5. Build All Architectures
 # ----------------------------------------
@@ -184,6 +194,13 @@ for ARCH in $ARCHS; do
     build_openh264 $ARCH
     build_ffmpeg $ARCH
 done
+
+HOST_ARCH="$(uname -m)"
+if [ -x "$OUTPUT_DIR/$HOST_ARCH/bin/ffmpeg" ]; then
+    verify_https_protocols "$OUTPUT_DIR/$HOST_ARCH/bin/ffmpeg"
+else
+    echo "⚠️ Skipping HTTPS runtime check; no host binary for $HOST_ARCH"
+fi
 
 # ----------------------------------------
 # 6. Create ZIP Package
