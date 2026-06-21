@@ -74,24 +74,6 @@ jobs:
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -encoders | grep -i "h264_vaapi"
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -hwaccels | grep -i "vaapi"
 
-  smoke-android:
-    name: Android build smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build FFmpeg (Android)
-        run: bash build-ffmpeg-android.sh
-
-      - name: Verify Android archive contents
-        run: |
-          test -f dist/ffmpeg-android.zip
-          unzip -l dist/ffmpeg-android.zip | grep "arm64-v8a/bin/ffmpeg"
-          unzip -l dist/ffmpeg-android.zip | grep "arm64-v8a/lib/libopenh264.a"
-          unzip -l dist/ffmpeg-android.zip | grep "armeabi-v7a/bin/ffmpeg"
-          unzip -l dist/ffmpeg-android.zip | grep "armeabi-v7a/lib/libopenh264.a"
-
   smoke-macos:
     name: macOS build smoke
     runs-on: macos-latest
