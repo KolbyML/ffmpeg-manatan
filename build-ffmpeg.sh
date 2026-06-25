@@ -26,8 +26,22 @@ export INSTALL_DIR="$OUTPUT_DIR"
 export BUILD_DIR="$BUILD_DIR"
 export TOOLCHAIN="x86_64-w64-mingw32"
 
-export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig"
-export PKG_CONFIG_LIBDIR="$INSTALL_DIR/lib/pkgconfig"
+refresh_target_pkg_config_path() {
+    TARGET_PKG_CONFIG_DIRS=("$INSTALL_DIR/lib/pkgconfig")
+    for pkg_config_dir in \
+        "${MINGW_PREFIX:-/mingw64}/lib/pkgconfig" \
+        "/usr/${TOOLCHAIN}/lib/pkgconfig" \
+        "/usr/lib/${TOOLCHAIN}/pkgconfig"
+    do
+        if [ -d "$pkg_config_dir" ]; then
+            TARGET_PKG_CONFIG_DIRS+=("$pkg_config_dir")
+        fi
+    done
+    TARGET_PKG_CONFIG_PATH="$(IFS=:; echo "${TARGET_PKG_CONFIG_DIRS[*]}")"
+    export PKG_CONFIG_PATH="$TARGET_PKG_CONFIG_PATH"
+    export PKG_CONFIG_LIBDIR="$TARGET_PKG_CONFIG_PATH"
+}
+refresh_target_pkg_config_path
 
 export CC="${TOOLCHAIN}-gcc"
 export CXX="${TOOLCHAIN}-g++"
@@ -83,11 +97,13 @@ elif command -v pacman >/dev/null 2>&1; then
     pacman -Sy --noconfirm --needed \
         base-devel git wget cmake make patch \
         autoconf automake libtool pkgconf yasm nasm zip unzip tar xz \
+        mingw-w64-x86_64-libxml2 \
         mingw-w64-x86_64-toolchain
 else
     echo "Unsupported package manager; install dependencies manually." >&2
     exit 1
 fi
+refresh_target_pkg_config_path
 
 # ----------------------------------------
 # 2. Build OpenH264
@@ -182,7 +198,14 @@ echo "[6/7] Configuring FFmpeg..."
 
 export CFLAGS="-I$INSTALL_DIR/include -I$INSTALL_DIR/include/ffnvcodec"
 export LDFLAGS="-L$INSTALL_DIR/lib"
-export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig"
+export PKG_CONFIG_PATH="$TARGET_PKG_CONFIG_PATH"
+export PKG_CONFIG_LIBDIR="$TARGET_PKG_CONFIG_PATH"
+
+pkg-config --exists libxml-2.0 || {
+    echo "Target libxml2 development files are required for DASH demuxing." >&2
+    echo "Install mingw-w64-x86_64-libxml2 under MSYS2 or provide a target libxml-2.0.pc." >&2
+    exit 1
+}
 
 CONFIGURE_HW_ARGS=("--enable-d3d11va")
 
@@ -223,13 +246,14 @@ fi
     --enable-avcodec --enable-avformat --enable-avutil \
     --enable-swscale --enable-swresample --enable-avfilter \
     --enable-libopenh264 \
-    --enable-decoder=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
+    --enable-libxml2 \
+    --enable-decoder=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus,pcm_s16le,ass,ssa,subrip,webvtt,movtext \
     --enable-hwaccel=h264_d3d11va,hevc_d3d11va,av1_d3d11va \
-    --enable-encoder=libopenh264,aac,rawvideo,webvtt \
+    --enable-encoder=libopenh264,aac,pcm_s16le,rawvideo,webvtt \
     --enable-parser=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus \
-    --enable-demuxer=matroska,hls \
-    --enable-muxer=hls,mpegts,mp4,rawvideo,webvtt \
-    --enable-protocol=file,pipe,http,https,tcp,tls \
+    --enable-demuxer=dash,hls,matroska,mov,mpegts,aac,wav \
+    --enable-muxer=dash,hls,mpegts,mp4,rawvideo,wav,webvtt \
+    --enable-protocol=file,pipe,http,https,tcp,tls,crypto,data,httpproxy \
     --enable-filter=scale,format,aresample \
     --enable-bsf=h264_mp4toannexb,aac_adtstoasc \
     "${CONFIGURE_HW_ARGS[@]}"
@@ -252,6 +276,16 @@ echo ""
 echo "[7.25/8] Verifying HTTPS protocol support..."
 "$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
 "$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
+
+echo ""
+echo "[7.3/8] Verifying sentence audio capture formats..."
+"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
+"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
+"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+wav[[:space:]]'
+"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
+"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
+"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'
+"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -protocols | grep -E '^[[:space:]]+data[[:space:]]*$'
 
 run_hw_smoke_test() {
     local label="$1"

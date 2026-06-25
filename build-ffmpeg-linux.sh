@@ -53,6 +53,7 @@ sudo apt-get install -y -qq \
     vainfo \
     libdrm-dev \
     zlib1g-dev \
+    libxml2-dev \
     libgnutls28-dev
 
 # ----------------------------------------
@@ -104,7 +105,7 @@ make distclean 2>/dev/null || true
 
 # Set PKG_CONFIG_PATH so FFmpeg finds OpenH264
 export PKG_CONFIG_PATH="$OUTPUT_DIR/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig"
-export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
+export PKG_CONFIG_LIBDIR="$PKG_CONFIG_PATH"
 
 ./configure \
     --prefix="$OUTPUT_DIR" \
@@ -124,22 +125,23 @@ export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/lib/pkgconfig"
     --enable-libdrm \
     \
     --enable-libopenh264 \
+    --enable-libxml2 \
     \
-    --enable-decoder=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
+    --enable-decoder=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus,pcm_s16le,ass,ssa,subrip,webvtt,movtext \
     \
     --enable-hwaccel=h264_vaapi,hevc_vaapi,av1_vaapi \
     \
-    --enable-encoder=libopenh264,aac,rawvideo,webvtt \
+    --enable-encoder=libopenh264,aac,pcm_s16le,rawvideo,webvtt \
     --enable-encoder=h264_vaapi \
     \
     \
     --enable-parser=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus \
     \
-    --enable-demuxer=matroska,hls \
-    --enable-muxer=hls,mpegts,mp4,rawvideo,webvtt \
+    --enable-demuxer=dash,hls,matroska,mov,mpegts,aac,wav \
+    --enable-muxer=dash,hls,mpegts,mp4,rawvideo,wav,webvtt \
     \
     \
-    --enable-protocol=file,pipe,http,https,tcp,tls \
+    --enable-protocol=file,pipe,http,https,tcp,tls,crypto,data,httpproxy \
     \
     --enable-filter=scale,format,scale_vaapi,hwupload,aresample \
     \
@@ -158,6 +160,16 @@ echo ""
 echo "Checking HTTPS protocol support..."
 "$OUTPUT_DIR/bin/ffmpeg" -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
 "$OUTPUT_DIR/bin/ffmpeg" -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
+
+echo ""
+echo "Checking sentence audio capture format support..."
+"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
+"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
+"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+wav[[:space:]]'
+"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
+"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
+"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'
+"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -protocols | grep -E '^[[:space:]]+data[[:space:]]*$'
 
 echo "   ✅ FFmpeg built"
 

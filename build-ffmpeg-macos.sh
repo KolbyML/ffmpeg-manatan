@@ -113,8 +113,22 @@ build_ffmpeg() {
     cd "$BUILD_DIR/ffmpeg-7.1"
     make distclean 2>/dev/null || true
     
+    mkdir -p "$OUTPUT_DIR/$ARCH/lib/pkgconfig"
+    SDKROOT_PATH="$(xcrun --sdk macosx --show-sdk-path)"
+    cat > "$OUTPUT_DIR/$ARCH/lib/pkgconfig/libxml-2.0.pc" <<EOF
+prefix=$SDKROOT_PATH/usr
+exec_prefix=\${prefix}
+libdir=\${prefix}/lib
+includedir=\${prefix}/include/libxml2
+
+Name: libXML
+Version: 2.9.13
+Description: macOS SDK libxml2
+Libs: -L\${libdir} -lxml2
+Cflags: -I\${includedir}
+EOF
     export PKG_CONFIG_PATH="$OUTPUT_DIR/$ARCH/lib/pkgconfig"
-    export PKG_CONFIG_LIBDIR="$OUTPUT_DIR/$ARCH/lib/pkgconfig"
+    export PKG_CONFIG_LIBDIR="$PKG_CONFIG_PATH"
     
     if [ "$ARCH" == "arm64" ]; then
         ARCH_FLAGS="-arch arm64"
@@ -145,21 +159,22 @@ build_ffmpeg() {
         \
         --enable-videotoolbox \
         --enable-libopenh264 \
+        --enable-libxml2 \
         \
-        --enable-decoder=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus,ass,ssa,subrip,webvtt,mov_text \
+        --enable-decoder=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus,pcm_s16le,ass,ssa,subrip,webvtt,movtext \
         --enable-decoder=h264_videotoolbox,hevc_videotoolbox \
         \
         --enable-hwaccel=h264_videotoolbox,hevc_videotoolbox \
         \
-        --enable-encoder=libopenh264,aac,rawvideo,webvtt \
+        --enable-encoder=libopenh264,aac,pcm_s16le,rawvideo,webvtt \
         --enable-encoder=h264_videotoolbox \
         \
         --enable-parser=hevc,av1,h264,mjpeg,aac,ac3,eac3,flac,opus \
         \
-        --enable-demuxer=matroska,hls \
-        --enable-muxer=hls,mpegts,mp4,rawvideo,webvtt \
+        --enable-demuxer=dash,hls,matroska,mov,mpegts,aac,wav \
+        --enable-muxer=dash,hls,mpegts,mp4,rawvideo,wav,webvtt \
         \
-        --enable-protocol=file,pipe,http,https,tcp,tls \
+        --enable-protocol=file,pipe,http,https,tcp,tls,crypto,data,httpproxy \
         \
         --enable-filter=scale,format,aresample \
         \
@@ -181,6 +196,16 @@ verify_https_protocols() {
     echo "Checking HTTPS protocol support in $FFMPEG_BIN..."
     "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
     "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
+
+    echo ""
+    echo "Checking sentence audio capture format support in $FFMPEG_BIN..."
+    "$FFMPEG_BIN" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
+    "$FFMPEG_BIN" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
+    "$FFMPEG_BIN" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+wav[[:space:]]'
+    "$FFMPEG_BIN" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
+    "$FFMPEG_BIN" -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
+    "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'
+    "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+data[[:space:]]*$'
 }
 
 # ----------------------------------------
