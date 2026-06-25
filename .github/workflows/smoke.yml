@@ -40,6 +40,8 @@ jobs:
             unzip
             tar
             xz
+            python
+            mingw-w64-x86_64-libxml2
             mingw-w64-x86_64-toolchain
 
       - name: Build FFmpeg (Windows)
@@ -57,8 +59,17 @@ jobs:
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " h264 "
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " hevc "
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " av1 "
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -protocols | grep -E '^[[:space:]]+data[[:space:]]*$'
+
+      - name: Verify Windows DASH sentence audio extraction
+        run: bash .github/scripts/smoke-sentence-audio-dash.sh ./ffmpeg-win-output/bin/ffmpeg.exe
 
   smoke-linux:
     name: Linux build smoke
@@ -75,8 +86,17 @@ jobs:
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -encoders | grep -i "libopenh264"
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -encoders | grep -i "h264_vaapi"
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -hwaccels | grep -i "vaapi"
+          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
+          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
+          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
+          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
+          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'
+          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -protocols | grep -E '^[[:space:]]+data[[:space:]]*$'
+
+      - name: Verify Linux DASH sentence audio extraction
+        run: bash .github/scripts/smoke-sentence-audio-dash.sh ./ffmpeg-linux-output/bin/ffmpeg
 
   smoke-macos:
     name: macOS build smoke
@@ -98,5 +118,16 @@ jobs:
           "$FFMPEG_BIN" -hide_banner -encoders | grep -i "libopenh264"
           "$FFMPEG_BIN" -hide_banner -encoders | grep -i "h264_videotoolbox"
           "$FFMPEG_BIN" -hide_banner -hwaccels | grep -i "videotoolbox"
+          "$FFMPEG_BIN" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
+          "$FFMPEG_BIN" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
+          "$FFMPEG_BIN" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
+          "$FFMPEG_BIN" -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
           "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
           "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
+          "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'
+          "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+data[[:space:]]*$'
+
+      - name: Verify macOS DASH sentence audio extraction
+        run: |
+          HOST_ARCH="$(uname -m)"
+          bash .github/scripts/smoke-sentence-audio-dash.sh "./ffmpeg-macos-output/${HOST_ARCH}/bin/ffmpeg"

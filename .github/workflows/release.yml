@@ -38,6 +38,8 @@ jobs:
             unzip
             tar
             xz
+            python
+            mingw-w64-x86_64-libxml2
             mingw-w64-x86_64-toolchain
 
       - name: Build FFmpeg (Windows)
@@ -54,6 +56,13 @@ jobs:
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -hwaccels | grep -i "d3d11va"
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " h264 "
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " hevc "
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
+
+      - name: Smoke Test Windows DASH sentence audio extraction
+        run: bash .github/scripts/smoke-sentence-audio-dash.sh ./ffmpeg-win-output/bin/ffmpeg.exe
 
       - name: Verify Output
         run: |
