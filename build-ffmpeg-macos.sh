@@ -201,9 +201,8 @@ verify_https_protocols() {
     echo "Checking sentence audio capture format support in $FFMPEG_BIN..."
     "$FFMPEG_BIN" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
     "$FFMPEG_BIN" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
-    "$FFMPEG_BIN" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+wav[[:space:]]'
-    "$FFMPEG_BIN" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
-    "$FFMPEG_BIN" -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
+    "$FFMPEG_BIN" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+mp4[[:space:]]'
+    "$FFMPEG_BIN" -hide_banner -encoders | grep -E '^[[:space:]]+A.*aac[[:space:]]'
     "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'
     "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+data[[:space:]]*$'
 }

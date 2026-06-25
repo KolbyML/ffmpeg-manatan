@@ -22,7 +22,7 @@ trap 'rm -rf "$SMOKE_DIR"' EXIT
 
 INPUT_WAV="$SMOKE_DIR/input.wav"
 MANIFEST="$SMOKE_DIR/manifest.mpd"
-CLIP_WAV="$SMOKE_DIR/clip.wav"
+CLIP_M4A="$SMOKE_DIR/clip.m4a"
 
 "$PYTHON" - "$INPUT_WAV" <<'PY'
 import math
@@ -61,18 +61,20 @@ test -s "$MANIFEST"
     -t 1.25 \
     -map 0:a:0 \
     -vn \
-    -acodec pcm_s16le \
-    -f wav \
-    "$CLIP_WAV"
+    -c:a aac \
+    -b:a 128k \
+    -movflags frag_keyframe+empty_moov+default_base_moof \
+    -f mp4 \
+    "$CLIP_M4A"
 
-"$PYTHON" - "$CLIP_WAV" <<'PY'
+"$PYTHON" - "$CLIP_M4A" <<'PY'
 from pathlib import Path
 import sys
 
 clip = Path(sys.argv[1]).read_bytes()
-if not clip.startswith(b"RIFF"):
-    raise SystemExit(f"expected WAV RIFF output, got {clip[:16]!r}")
-if len(clip) <= 44:
-    raise SystemExit(f"expected WAV payload larger than header, got {len(clip)} bytes")
-print(f"sentence audio DASH smoke passed: {len(clip)} bytes")
+if len(clip) <= 128:
+    raise SystemExit(f"expected M4A payload larger than header, got {len(clip)} bytes")
+if clip[4:8] != b"ftyp":
+    raise SystemExit(f"expected MP4/M4A ftyp box, got {clip[:16]!r}")
+print(f"sentence audio DASH M4A smoke passed: {len(clip)} bytes")
 PY

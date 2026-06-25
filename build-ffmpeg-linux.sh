@@ -165,9 +165,8 @@ echo ""
 echo "Checking sentence audio capture format support..."
 "$OUTPUT_DIR/bin/ffmpeg" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
 "$OUTPUT_DIR/bin/ffmpeg" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
-"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+wav[[:space:]]'
-"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
-"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
+"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+mp4[[:space:]]'
+"$OUTPUT_DIR/bin/ffmpeg" -hide_banner -encoders | grep -E '^[[:space:]]+A.*aac[[:space:]]'
 "$OUTPUT_DIR/bin/ffmpeg" -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'
 "$OUTPUT_DIR/bin/ffmpeg" -hide_banner -protocols | grep -E '^[[:space:]]+data[[:space:]]*$'
 

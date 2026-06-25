@@ -58,8 +58,8 @@ jobs:
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " hevc "
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+mp4[[:space:]]'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -E '^[[:space:]]+A.*aac[[:space:]]'
 
       - name: Smoke Test Windows DASH sentence audio extraction
         run: bash .github/scripts/smoke-sentence-audio-dash.sh ./ffmpeg-win-output/bin/ffmpeg.exe

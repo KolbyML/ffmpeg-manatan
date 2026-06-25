@@ -61,8 +61,8 @@ jobs:
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " av1 "
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+mp4[[:space:]]'
+          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -E '^[[:space:]]+A.*aac[[:space:]]'
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
           ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'
@@ -88,8 +88,8 @@ jobs:
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -hwaccels | grep -i "vaapi"
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
-          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
-          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
+          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+mp4[[:space:]]'
+          ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -encoders | grep -E '^[[:space:]]+A.*aac[[:space:]]'
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
           ./ffmpeg-linux-output/bin/ffmpeg -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'
@@ -120,8 +120,8 @@ jobs:
           "$FFMPEG_BIN" -hide_banner -hwaccels | grep -i "videotoolbox"
           "$FFMPEG_BIN" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
           "$FFMPEG_BIN" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
-          "$FFMPEG_BIN" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
-          "$FFMPEG_BIN" -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
+          "$FFMPEG_BIN" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+mp4[[:space:]]'
+          "$FFMPEG_BIN" -hide_banner -encoders | grep -E '^[[:space:]]+A.*aac[[:space:]]'
           "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+https[[:space:]]*$'
           "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+tls[[:space:]]*$'
           "$FFMPEG_BIN" -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'

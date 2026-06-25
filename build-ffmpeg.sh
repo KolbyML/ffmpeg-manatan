@@ -281,9 +281,8 @@ echo ""
 echo "[7.3/8] Verifying sentence audio capture formats..."
 "$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
 "$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
-"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+wav[[:space:]]'
-"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+wav[[:space:]]'
-"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -encoders | grep -E '^[[:space:]]+A.*pcm_s16le[[:space:]]'
+"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+mp4[[:space:]]'
+"$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -encoders | grep -E '^[[:space:]]+A.*aac[[:space:]]'
 "$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -protocols | grep -E '^[[:space:]]+crypto[[:space:]]*$'
 "$INSTALL_DIR/bin/ffmpeg.exe" -hide_banner -protocols | grep -E '^[[:space:]]+data[[:space:]]*$'
 
