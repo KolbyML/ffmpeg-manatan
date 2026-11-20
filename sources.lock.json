@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "ffmpeg": {
+      "version": "7.1.5",
+      "filename": "ffmpeg-7.1.5.tar.xz",
+      "url": "https://ffmpeg.org/releases/ffmpeg-7.1.5.tar.xz",
+      "license": "LGPL-2.1-or-later (LGPL-3.0-or-later for mbedTLS targets)",
+      "sha256": "de668509caf9e35e3cd162473441fdb29538c6d96ed080292b3cf9e6fc5d558f"
+    },
+    "openh264": {
+      "version": "2.7.0",
+      "revision": "1bca62311e447fd9c39fc93de2c4b96cd5ce971c",
+      "filename": "openh264-2.7.0.tar.gz",
+      "url": "https://codeload.github.com/cisco/openh264/tar.gz/1bca62311e447fd9c39fc93de2c4b96cd5ce971c",
+      "license": "BSD-2-Clause",
+      "sha256": "2238d3e5956ef0d288dd43842a0220015cf72c4327d98684e8bc47ffa7cf5308"
+    },
+    "libxml2": {
+      "version": "2.14.6",
+      "filename": "libxml2-2.14.6.tar.xz",
+      "url": "https://download.gnome.org/sources/libxml2/2.14/libxml2-2.14.6.tar.xz",
+      "license": "MIT",
+      "sha256": "7ce458a0affeb83f0b55f1f4f9e0e55735dbfc1a9de124ee86fb4a66b597203a"
+    },
+    "mbedtls": {
+      "version": "3.6.5",
+      "filename": "mbedtls-3.6.5.tar.bz2",
+      "url": "https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.5/mbedtls-3.6.5.tar.bz2",
+      "license": "Apache-2.0",
+      "sha256": "4a11f1777bb95bf4ad96721cac945a26e04bf19f57d905f241fe77ebeddf46d8"
+    },
+    "nvcodec": {
+      "version": "12.2.72.0",
+      "filename": "nv-codec-headers-12.2.72.0.tar.gz",
+      "url": "https://codeload.github.com/FFmpeg/nv-codec-headers/tar.gz/refs/tags/n12.2.72.0",
+      "license": "MIT",
+      "sha256": "dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563"
+    },
+    "amf": {
+      "version": "1.4.35",
+      "revision": "ba07d1b3c7c7ee0d846125cffc1d6d78a020c45a",
+      "filename": "amf-1.4.35.tar.gz",
+      "url": "https://codeload.github.com/GPUOpen-LibrariesAndSDKs/AMF/tar.gz/ba07d1b3c7c7ee0d846125cffc1d6d78a020c45a",
+      "license": "MIT",
+      "sha256": "5c088ae8e8ad374a2c92be1c9751162e458a87c73bfa465d1bc9fa20675ca4e5"
+    }
+  },
+  "runtimeNotices": {
+    "gcc-COPYING.RUNTIME": {
+      "filename": "gcc-COPYING.RUNTIME",
+      "url": "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-16.1.0/COPYING.RUNTIME",
+      "sha256": "9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74"
+    },
+    "gcc-COPYING3": {
+      "filename": "gcc-COPYING3",
+      "url": "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-16.1.0/COPYING3",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    }
+  },
+  "verificationFiles": {
+    "ffmpeg-7.1.5.tar.xz.asc": {
+      "url": "https://ffmpeg.org/releases/ffmpeg-7.1.5.tar.xz.asc",
+      "filename": "ffmpeg-7.1.5.tar.xz.asc",
+      "sha256": "7ce4b9d56e3ef0cd4c3a9c0b2c8a034ac91e6c4c011c1f10b05a8aa7292fca35"
+    },
+    "ffmpeg-devel.asc": {
+      "url": "https://ffmpeg.org/ffmpeg-devel.asc",
+      "filename": "ffmpeg-devel.asc",
+      "sha256": "397b3becedcd5a98769967ff1ff8501ddc89f8368b8f766e4701377d7dbaabe5"
+    }
+  },
+  "ffmpegSigningKeyFingerprint": "FCF986EA15E6E293A5644F10B4322F04D67658D8"
+}

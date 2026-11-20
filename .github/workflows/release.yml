@@ -1,140 +1,106 @@
-name: Build and Release FFmpeg
+name: Build Non-GPL Review Candidate
 
 on:
-  release:
-    types: [created]
+  workflow_dispatch:
+  workflow_call:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: msys2 {0}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up MSYS2
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: >-
-            base-devel
-            git
-            wget
-            cmake
-            make
-            patch
-            autoconf
-            automake
-            libtool
-            pkgconf
-            yasm
-            nasm
-            zip
-            unzip
-            tar
-            xz
-            python
-            mingw-w64-x86_64-libxml2
-            mingw-w64-x86_64-toolchain
-
-      - name: Build FFmpeg (Windows)
-        env:
-          SKIP_SYSTEM_DEPS: "1"
-          RUN_HW_RUNTIME_SMOKE: "0"
-        run: bash build-ffmpeg.sh
-
-      - name: Smoke Test Windows FFmpeg features
-        run: |
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -i "libopenh264"
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -i "h264_nvenc"
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -i "h264_amf"
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -hwaccels | grep -i "d3d11va"
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " h264 "
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -decoders | grep -i " hevc "
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+dash[[:space:]]'
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -demuxers | grep -E '^[[:space:]]+D[[:space:]]+mov,mp4'
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -muxers | grep -E '^[[:space:]]+E[[:space:]]+mp4[[:space:]]'
-          ./ffmpeg-win-output/bin/ffmpeg.exe -hide_banner -encoders | grep -E '^[[:space:]]+A.*aac[[:space:]]'
-
-      - name: Smoke Test Windows DASH sentence audio extraction
-        run: bash .github/scripts/smoke-sentence-audio-dash.sh ./ffmpeg-win-output/bin/ffmpeg.exe
-
-      - name: Verify Output
-        run: |
-          echo "📦 Build artifacts:"
-          ls -la dist/
-          
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ffmpeg-win
-          path: dist/ffmpeg-win-static.zip
-          if-no-files-found: error
-
-  build-linux:
+  linux-windows:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Build FFmpeg (Linux)
-        run: bash build-ffmpeg-linux.sh
-        
-      - name: Verify Output
+      - name: Install build and test dependencies
         run: |
-          echo "📦 Build artifacts:"
-          ls -la dist/
-          
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+          sudo apt-get update
+          sudo apt-get install -y build-essential git cmake ninja-build nasm pkg-config libva-dev libdrm-dev mingw-w64 wine64 ffmpeg python3
+      - name: Build and validate
+        run: |
+          python3 scripts/make_test_fixture.py
+          python3 scripts/build_release.py --target linux-x86_64 --target windows-x86_64
+          python3 scripts/validate_release.py --target linux-x86_64
+          python3 scripts/validate_release.py --target windows-x86_64 --wine /usr/lib/wine/wine64
+          python3 scripts/build_release.py --stage-only --target linux-x86_64 --target windows-x86_64
+          tar -czf candidate-linux-windows.tar.gz -C .build/targets linux-x86_64/package linux-x86_64/build-manifest.json linux-x86_64/validation windows-x86_64/package windows-x86_64/build-manifest.json windows-x86_64/validation
+      - uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg-linux
-          path: dist/ffmpeg-linux-static.zip
+          name: candidate-linux-windows
+          path: candidate-linux-windows.tar.gz
           if-no-files-found: error
 
-  build-macos:
-    runs-on: macos-latest
+  macos:
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Build FFmpeg (macOS)
-        run: bash build-ffmpeg-macos.sh
-        
-      - name: Verify Output
+      - name: Install build and fixture tools
+        run: brew install cmake ninja nasm pkg-config ffmpeg
+      - name: Enable Intel execution on Apple Silicon
         run: |
-          echo "📦 Build artifacts:"
-          ls -la dist/
-          
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+          if [[ "$(uname -m)" == arm64 ]]; then
+            sudo softwareupdate --install-rosetta --agree-to-license
+          fi
+      - name: Build and validate
+        run: |
+          python3 scripts/make_test_fixture.py
+          bash build-ffmpeg-macos.sh
+          python3 scripts/validate_release.py --target macos-arm64
+          python3 scripts/validate_release.py --target macos-x86_64
+          python3 scripts/build_release.py --stage-only --target macos-arm64 --target macos-x86_64
+          tar -czf candidate-macos.tar.gz -C .build/targets macos-arm64/package macos-arm64/build-manifest.json macos-arm64/validation macos-x86_64/package macos-x86_64/build-manifest.json macos-x86_64/validation
+      - uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg-macos
-          path: dist/ffmpeg-macos.zip
+          name: candidate-macos
+          path: candidate-macos.tar.gz
           if-no-files-found: error
 
-  release:
-    needs: [build-windows, build-linux, build-macos]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+  android:
+    runs-on: ubuntu-22.04
+    env:
+      ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/29.0.14206865
     steps:
-      - name: Download All Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist
-          merge-multiple: true
-
-      - name: List Release Files
+      - uses: actions/checkout@v4
+      - name: Install build and emulation tools
         run: |
-          echo "📦 Files to release:"
-          ls -lah dist/
-
-      - name: Publish Release
-        uses: softprops/action-gh-release@v2
+          sudo apt-get update
+          sudo apt-get install -y build-essential git cmake ninja-build nasm pkg-config qemu-user ffmpeg python3
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'ndk;29.0.14206865'
+      - name: Build and validate standalone Bionic executables
+        run: |
+          python3 scripts/make_test_fixture.py
+          bash build-ffmpeg-android.sh
+          python3 scripts/validate_release.py --target android-arm64-v8a --qemu /usr/bin/qemu-aarch64
+          python3 scripts/validate_release.py --target android-armeabi-v7a --qemu /usr/bin/qemu-arm
+          python3 scripts/build_release.py --stage-only --target android-arm64-v8a --target android-armeabi-v7a
+          tar -czf candidate-android.tar.gz -C .build/targets android-arm64-v8a/package android-arm64-v8a/build-manifest.json android-arm64-v8a/validation android-armeabi-v7a/package android-armeabi-v7a/build-manifest.json android-armeabi-v7a/validation
+      - uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ github.ref_name }}
-          files: dist/*.zip
+          name: candidate-android
+          path: candidate-android.tar.gz
+          if-no-files-found: error
+
+  assemble-for-review:
+    needs: [linux-windows, macos, android]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: candidate-*
+          merge-multiple: true
+          path: candidates
+      - name: Assemble verified local archives
+        run: |
+          mkdir -p .build/targets
+          for archive in candidates/*.tar.gz; do
+            tar -xzf "$archive" -C .build/targets
+          done
+          python3 scripts/build_release.py --package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: non-gpl-release-for-review
+          path: dist/non-gpl-candidate
+          if-no-files-found: error
+
+# Deliberately no GitHub Release creation, tag creation, or publish step.
